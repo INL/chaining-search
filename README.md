@@ -1,5 +1,6 @@
-# Chaining searc installation
-## Create virtual environment, in which local copies of all Python dependencies will be installed
+# Chaining search installation
+## Create virtual environment
+In the virtual environment, local copies of all Python dependencies will be installed. 
 Install venv for python3, eg. on Ubuntu:
 ```
 $ sudo apt install python3-venv
@@ -18,7 +19,7 @@ Install dependencies inside virtual environment
 pip3 install -r requirements.txt
 ```
 
-Run Jupyter notebook:
+## Run Jupyter notebook
 ```
 jupyter notebook
 ```
