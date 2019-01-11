@@ -17,9 +17,10 @@ $ source cs_env/bin/activate
 
 Install dependencies inside virtual environment
 ```
-(venv) $ pip install ipykernel
-(venv) $ ipython kernel install --user --name=cs_env
-pip3 install -r requirements.txt
+pip install -r requirements.txt
+jupyter contrib nbextension install --sys-prefix
+jupyter nbextensions_configurator enable --sys-prefix
+python3 -m ipykernel install --user --name
 ```
 
 Run Jupyter notebook

@@ -1,5 +1,7 @@
+wheel
 jupyter
-requests
-pandas
+ipykernel
 jupyter_contrib_nbextensions
 jupyter_nbextensions_configurator
+requests
+pandas
