@@ -20,7 +20,7 @@ Install dependencies inside virtual environment
 pip install -r requirements.txt
 jupyter contrib nbextension install --sys-prefix
 jupyter nbextensions_configurator enable --sys-prefix
-python3 -m ipykernel install --user --name
+python3 -m ipykernel install --user --name cs_env
 ```
 
 Run Jupyter notebook
