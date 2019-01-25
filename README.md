@@ -74,7 +74,7 @@ jupyter notebook
 +==========================================================================
 ! create_corpus_ui()
 +==========================================================================
-! Output: none
+! Output: N/A
 !
 ! Build a GUI for corpus search
 +--------------------------------------------------------------------------
@@ -134,7 +134,7 @@ jupyter notebook
 +==========================================================================
 ! create_lexicon_ui()
 +==========================================================================
-! Output: none
+! Output: N/A
 !
 ! Build a GUI for lexicon search
 +--------------------------------------------------------------------------
@@ -142,7 +142,7 @@ jupyter notebook
 +==========================================================================
 ! search_lexicon_allwords(lexicon_name TEXT)
 +==========================================================================
-! Output: none
+! Output: N/A
 !
 ! Get all words of a lexicon, given its name
 +--------------------------------------------------------------------------
@@ -230,6 +230,17 @@ jupyter notebook
 +--------------------------------------------------------------------------
 
 
++==========================================================================
+! display_df_chart(df1 DATAFRAME, column TEXT, title TEXT)
++==========================================================================
+! Output: N/A 
+!
+! Draw a horizontal chart representing a dataframe.
+! One axis is the index of the dataframe, and the other axis
+! is the given column, which holds the values to plot in the chart.
++--------------------------------------------------------------------------
+
+
 ######################################
 ## Saving dataframes and re-loading those
 ###################################### 
@@ -237,7 +248,7 @@ jupyter notebook
 +==========================================================================
 ! create_save_dataframe_ui(dataframe)
 +==========================================================================
-! Output: none
+! Output: N/A
 !
 ! Build a GUI for saving the results of some lexicon or corpus query to a 
 ! CSV file.
@@ -260,7 +271,7 @@ jupyter notebook
 +==========================================================================
 ! view_multiple_results(dataframes DICTIONARY, labels ARRAY)
 +==========================================================================
-! Output: none
+! Output: N/A
 !
 ! Show the content of multiple dataframes out of an dictionary associating 
 ! labels (eg. corpus or lexicon names) to dataframes (values)

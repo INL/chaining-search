@@ -6,3 +6,5 @@ jupyter_nbextensions_configurator
 requests
 pandas
 wxPython
+matplotlib
+nltk
