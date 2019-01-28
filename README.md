@@ -32,34 +32,64 @@ jupyter notebook
 
 # in Windows
 
-Download the Python-installer from https://www.python.org/
+## Step 1
+
+First download the code of this project. To do so, click on the 'Clone or download' button on top of the github project page. Click on 'Download ZIP' and save the file to the location of your choice.
+
+Open the Windows explorer, browse to the file location, and unzip the file. 
+
+Then browse the unzipped folder till you find the 'Chaining search.ipynb' file. Copy its exact location (full path): you will need it later on.
+
+## Step  2
+
+Download the Python-installer from https://www.python.org/  
+
 Install!
+
 When the installer asks, tell it to add Python to PATH
 
-Upgrade the Python Package Installer (PIP)
+## Step  3
+
+Now, open a Command prompt window. To do so, press keys Windows+R and then type 'cmd' (and press enter).
+
+In the Command prompt window: Upgrade the Python Package Installer (PIP) by typing:
 ```
 python -m pip install -U pip
 ```
 
-Create and activate virtual environment:
+Still in the Command prompt window, create the virtual environment:
 ```
 pip install virtualenv
+```
+Switch to the folder when you unzipped the project code (your copied that location at the beginning):
+
+```
 cd <project location>
+```
+
+Now you're ready to activate the virtual environment. Type:
+```
 virtualenv env
 .\env\Scripts\activate.bat
 ```
 
-Install dependencies inside virtual environment
+As a final step in the Command prompt, install the dependencies:
 ```
 pip install ipykernel
 ipython kernel install --user --name=cs_env
 pip3 install -r requirements.txt
 ```
 
-Run Jupyter notebook
+Done! 
+
+## Step  4
+
+Run the Jupyter notebook!
 ```
 jupyter notebook
 ```
+
+In the next sessions, performing step 4 will be enough the restart the notebook
 
 
 -----------------------------------------------
