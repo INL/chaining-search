@@ -52,7 +52,7 @@ When the installer asks, tell it to add Python to PATH
 
 Now, open a Command prompt window. To do so, press keys Windows+R and then type 'cmd' (and press enter).
 
-In the Command prompt window: Upgrade the Python Package Installer (PIP) by typing:
+In the Command prompt window, upgrade the Python Package Installer (PIP) by typing:
 ```
 python -m pip install -U pip
 ```
@@ -78,9 +78,7 @@ As a final step in the Command prompt, install the dependencies:
 pip install ipykernel
 ipython kernel install --user --name=cs_env
 pip3 install -r requirements.txt
-```
-
-Done! 
+``` 
 
 ## Step  4
 
@@ -88,6 +86,8 @@ Run the Jupyter notebook!
 ```
 jupyter notebook
 ```
+
+Done!
 
 
 ## Next sessions
