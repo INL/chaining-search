@@ -1,32 +1,37 @@
 # Chaining search installation
 
-# in Linux
+# Linux
+This guide assumes you have a Python 3 interpreter on your system. If not, install it from your distribution's package management system. In this guide, we install all required Python packages in a virtual environment, so packages do not interfere with the systemwide installation.
 
-Create virtual environment
-In the virtual environment, local copies of all Python dependencies will be installed. 
-Install venv for python3, eg. on Ubuntu:
+First, install `venv` for python3. On Ubuntu, this is done by opening a terminal and typing:
 ```
 $ sudo apt install python3-venv
 ```
 
-Create and activate virtual environment:
+Now, we create a virtual environment in the folder `env`, and activate it:
 ```
-$ python3 -m venv cs_env
-$ source cs_env/bin/activate
+$ python3 -m venv cenv
 ```
+We activate the environement by typing:
+$ source env/bin/activate
+```
+`(env)` will appear in front of your terminal
 
-Install dependencies inside virtual environment
+Now, type the following commands in the terminal, one after the other, to install
+the required Python packages:
 ```
 pip install -r requirements.txt
 jupyter contrib nbextension install --sys-prefix
 jupyter nbextensions_configurator enable --sys-prefix
-python3 -m ipykernel install --user --name cs_env
+python3 -m ipykernel install --user --name env
 ```
 
-Run Jupyter notebook
+Every time you want to run the notebook, make sure the environment is activated (`source env/bin/activate`) and then issue:
 ```
 jupyter notebook
 ```
+
+A browser window will open. Now, click `chaining_search.ipynb`.
 
 -----------------------------------------------
 
@@ -76,7 +81,7 @@ virtualenv env
 As a final step in the Command prompt, install the dependencies:
 ```
 pip install ipykernel
-ipython kernel install --user --name=cs_env
+ipython kernel install --user --name=env
 pip3 install -r requirements.txt
 ``` 
 
