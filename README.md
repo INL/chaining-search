@@ -92,10 +92,9 @@ jupyter notebook
 
 ## Next sessions
 
-In the next sessions, restarting the notebook will be much easier!
+You're done with installing. So, in the next sessions, restarting the notebook will be easy!
 
-Open a Command prompt window (to do so, press keys Windows+R and then type 'cmd').
-
+Open a Command prompt window (press keys Windows+R and then type 'cmd', remember?).
 Then go to the project folder (fill in the right path here):
 
 ```
