@@ -61,7 +61,7 @@ Still in the Command prompt window, create the virtual environment:
 ```
 pip install virtualenv
 ```
-Switch to the folder when you unzipped the project code (your copied that location at the beginning):
+Switch to the folder where you unzipped the project code (your copied that location at the beginning):
 
 ```
 cd <project location>
@@ -89,8 +89,28 @@ Run the Jupyter notebook!
 jupyter notebook
 ```
 
-In the next sessions, performing step 4 will be enough the restart the notebook
 
+## Next sessions
+
+In the next sessions, restarting the notebook will be much easier!
+
+Open a Command prompt window (to do so, press keys Windows+R and then type 'cmd').
+
+Then go to the project folder (fill in the right path here):
+
+```
+cd <project location>
+```
+
+Activate the virtual environment:
+```
+.\env\Scripts\activate.bat
+```
+
+Run the Jupyter notebook!
+```
+jupyter notebook
+```
 
 -----------------------------------------------
 ######################################
