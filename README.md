@@ -13,6 +13,7 @@ Now, we create a virtual environment in the folder `env`, and activate it:
 $ python3 -m venv cenv
 ```
 We activate the environement by typing:
+```
 $ source env/bin/activate
 ```
 `(env)` will appear in front of your terminal
