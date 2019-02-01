@@ -32,7 +32,12 @@ Every time you want to run the notebook, make sure the environment is activated 
 jupyter notebook
 ```
 
-A browser window will open. Now, click `chaining_search.ipynb`.
+A browser window will open. Now, click `chaining_search.ipynb`. The first time you use it, pick the kernel `env` from menu `Kernel > Change kernel > env`
+
+If you would like to move out of the virtual environment, after using the notebook, issue the following command:
+```
+deactivate
+```
 
 -----------------------------------------------
 
