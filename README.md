@@ -10,7 +10,7 @@ $ sudo apt install python3-venv
 
 Now, we create a virtual environment in the folder `env`, and activate it:
 ```
-$ python3 -m venv cenv
+$ python3 -m venv env
 ```
 We activate the environement by typing:
 ```
