@@ -1,25 +1,88 @@
+import re
 
-def get_query(word, lexicon):
+
+def containsRegex(word):
+    '''
+    This function checks whether some string contains a regular expression or not
+    
+    Args:
+        word: a string to check for regular expressions
+    Returns:
+        A boolean
+    '''
+    return ( word.find('^')>-1 or
+            word.find('$')>-1 or 
+            re.match("\(.+?\)", word) or
+            re.match("\[.+?\]", word) or
+            re.match("[\+*]", word) )
+                     
+def lexicon_query(word, pos, lexicon):
+    '''
+    This function builds a query for getting the paradigm etc. of a given lemma out of a given lexicon.
+    The resulting query string is to be used as a parameter of search_lexicon() 
+    
+    Args:
+        word: a lemma/wordform to build the query with
+        pos: a part-of-speech to build the query with
+        lexicon: a lexicon to build the query for
+    Returns:
+        a query string to be used as a parameter of search_lexicon() 
+    '''
+  
+    if word is None:
+        return _lexicon_query_alllemmata(lexicon, pos)
+    
     if (lexicon=="anw"):
-        subpart = 'FILTER ( regex(?lemma, "'+word+'") || regex(?definition, "'+word+'") ) .\n'
-        query = """PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>\n
-                  PREFIX anw: <http://rdf.ivdnt.org/lexica/anw>\n
-                  PREFIX anwsch: <http://rdf.ivdnt.org/schema/anw/>\n
-                  PREFIX lemon: <http://lemon-model.net/lemon#>\n
-                  \n
-                  SELECT ?lemId ?lemma ?writtenForm ?definition ?definitionComplement\n
-                  FROM <http://rdf.ivdnt.org/lexica/anw>\n
-                  WHERE {\n
-                      ?lemId rdfs:label ?lemma .\n
-                      ?lemId ontolex:sense ?senseId .\n
-                      ?senseId lemon:definition ?definitionId .\n
-                      ?definitionId lemon:value ?definition .\n
-                      OPTIONAL { ?definitionId anwsch:definitionComplement ?definitionComplement .}\n
-                      OPTIONAL { ?lemId ontolex:canonicalForm ?lemCFId . \n
-                          ?lemCFId ontolex:writtenRepresentation ?writtenForm . }\n
-                      """+subpart+"""\n
-                      }\n"""
+        # part-of-speech filter not supported for this lexicon
+        if (pos is not None and pos != ''):
+            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        # exact or fuzzy search
+        exactsearch = (not containsRegex(word))
+        subpart = """FILTER ( regex(?lemma, \""""+word+"""\") || regex(?definition, \""""+word+"""\") ) . """
+        if (exactsearch == True):
+              subpart =  """
+                { { ?lemId rdfs:label ?lemma .  
+                values ?lemma { \""""+word+"""\"@nl \""""+word+"""\" } }                 
+                UNION
+                { ?definitionId lemon:value ?definition .
+                values ?definition { \""""+word+"""\"@nl \""""+word+"""\" } } } .
+                """               
+        query = """PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+                  PREFIX anw: <http://rdf.ivdnt.org/lexica/anw>
+                  PREFIX anwsch: <http://rdf.ivdnt.org/schema/anw/>
+                  PREFIX lemon: <http://lemon-model.net/lemon#>
+                  
+                  SELECT ?lemId ?lemma ?writtenForm ?definition concat('', ?definitionComplement) as ?definitionComplement
+                  FROM <http://rdf.ivdnt.org/lexica/anw>
+                  WHERE {
+                      ?lemId rdfs:label ?lemma .
+                      ?lemId ontolex:sense ?senseId .
+                      ?senseId lemon:definition ?definitionId .
+                      ?definitionId lemon:value ?definition .
+                      OPTIONAL { ?definitionId anwsch:definitionComplement ?definitionComplement .}
+                      OPTIONAL { ?lemId ontolex:canonicalForm ?lemCFId . 
+                          ?lemCFId ontolex:writtenRepresentation ?writtenForm . }
+                      """+subpart+"""
+                      }"""
     elif (lexicon=="diamant"):
+        # part-of-speech filter not supported for this lexicon
+        if (pos is not None and pos != ''):
+            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        # exact or fuzzy search
+        exactsearch = (not containsRegex(word))
+        subpart1 = """?n_form ontolex:writtenRep ?n_ontolex_writtenRep . 
+            FILTER regex(?n_ontolex_writtenRep, \""""+word+"""\") . """
+        subpart2 = """?n_syndef diamant:definitionText ?n_syndef_definitionText .  
+            FILTER regex(?n_ontolex_writtenRep, \""""+word+"""\") . """
+        if (exactsearch == True):
+            subpart1 =  """
+                { ?n_form ontolex:writtenRep ?n_ontolex_writtenRep . 
+                values ?n_ontolex_writtenRep { \""""+word+"""\"@nl \""""+word+"""\" } } 
+                """                
+            subpart2 = """
+                { ?n_syndef diamant:definitionText ?n_syndef_definitionText . 
+                values ?n_syndef_definitionText { \""""+word+"""\"@nl \""""+word+"""\" } } 
+                """
         query = """
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
         prefix prov: <http://www.w3.org/ns/prov#>
@@ -40,8 +103,7 @@ def get_query(word, lexicon):
         graph ?g
         {
         {
-            { ?n_form ontolex:writtenRep ?n_ontolex_writtenRep .
-              values ?n_ontolex_writtenRep  { \"""" + word + """\" } } .
+            """ + subpart1 + """
             { ?n_entry a ontolex:LexicalEntry} .
             { ?n_form a ontolex:Form} .
             { ?n_sense a ontolex:LexicalSense} .
@@ -72,8 +134,7 @@ def get_query(word, lexicon):
             { bind("lemma" as ?inputMode) } .
             } UNION
           {
-            { ?n_syndef diamant:definitionText ?n_syndef_definitionText .
-            values ?n_syndef_definitionText  { \"""" + word + """\" } } .
+            """ + subpart2 + """
             { ?n_sense a ontolex:LexicalSense} .
             { ?n_syndef a diamant:SynonymDefinition} .
             { ?n_sensedef a lemon:SenseDefinition} .
@@ -104,5 +165,297 @@ def get_query(word, lexicon):
             }
         }
         }"""
+    elif (lexicon=="molex"):
+        # exact or fuzzy search
+        exactsearch = (not containsRegex(word))
+        subpart1 = """"""
+        subpart2 = """"""
+        subpartPos = """"""
+        if (word != ''):
+            if (exactsearch == True):
+                subpart1 =  """
+                    { ?lemCFId ontolex:writtenRep ?lemma . 
+                    values ?lemma { \""""+word+"""\"@nl \""""+word+"""\" } } 
+                    UNION
+                    { ?wordformId ontolex:writtenRep ?wordform . 
+                    values ?wordform { \""""+word+"""\"@nl \""""+word+"""\" } } .
+                    """        
+            else:
+                subpart2 = """FILTER ( regex(?lemma, \""""+word+"""\") || regex(?wordform, \""""+word+"""\") ) . """
+        if (pos is not None and pos != ''):
+            subpartPos = """FILTER ( regex(?lemPos, \""""+pos+"""$\") ) ."""
+        query = """
+            PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+            PREFIX UD: <http://universaldependencies.org/u/>
+            PREFIX diamant: <http://rdf.ivdnt.org/schema/diamant#>
+            
+            SELECT ?lemEntryId ?lemma ?lemPos ?wordformId ?wordform ?hyphenation ?wordformPos ?Gender ?Number
+            FROM <http://rdf.ivdnt.org/lexica/molex>
+            WHERE
+            {
+            ?lemEntryId ontolex:canonicalForm ?lemCFId .
+            ?lemCFId ontolex:writtenRep ?lemma .
+            """+subpart1+"""
+            OPTIONAL {?lemEntryId UD:Gender ?Gender .}
+            OPTIONAL {?lemEntryId UD:VerbForm ?verbform .}
+            ?lemEntryId UD:pos ?lemPos .
+            """+subpartPos+"""
+            ?lemEntryId ontolex:lexicalForm ?wordformId .
+            ?wordformId UD:pos ?wordformPos .
+            OPTIONAL {?wordformId UD:Number ?Number .}
+            OPTIONAL {?wordformId ontolex:writtenRep ?wordform .}
+            OPTIONAL {?wordformId diamant:hyphenation ?hyphenation .}
+            """+subpart2+"""
+            }
+        """
+    elif (lexicon=="duelme"):
+        # part-of-speech filter not supported for this lexicon
+        if (pos is not None and pos != ''):
+            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        # exact or fuzzy search
+        exactsearch = (not containsRegex(word))
+        subpart = """FILTER ( regex(?lemma, \""""+word+"""\") || regex(?wordform, \""""+word+"""\") ) ."""
+        if (exactsearch == True):
+            subpart =  """
+                { ?y lmf:hasLemma ?dl .  
+                values ?dl { \""""+word+"""\"@nl \""""+word+"""\" } }                 
+                """        
+        query = """
+            PREFIX duelme: <http://rdf.ivdnt.org/lexica/duelme>
+            PREFIX intskos: <http://ivdnt.org/schema/lexica#>
+            PREFIX lmf: <http://www.lexinfo.net/lmf>
+            PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+            PREFIX UD: <http://rdf.ivdnt.org/vocabs/UniversalDependencies2#>
+            
+            SELECT ?exampleSentence ?lemma ?gender ?number
+            WHERE  {
+                  ?d intskos:ExampleSentence ?exampleSentence .
+                  ?d lmf:ListOfComponents [lmf:Component ?y] .
+                  ?y lmf:hasLemma ?lemma . 
+                  OPTIONAL {?y UD:Gender ?gender}
+                  OPTIONAL {?y UD:Number ?number}
+            """+subpart+"""
+            }
+        """
+    elif (lexicon=="celex"):
+        # part-of-speech filter not supported for this lexicon
+        if (pos is not None and pos != ''):
+            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        # exact or fuzzy search
+        exactsearch = (not containsRegex(word))
+        subpart = """FILTER ( regex(?lemma, \""""+word+"""\") ) . """
+        if (exactsearch == True):
+            subpart =  """
+                { ?lemmaId ontolex:canonicalForm [ontolex:writtenRep ?lemma] .  
+                values ?lemma { \""""+word+"""\"@nl \""""+word+"""\" } }                 
+                """        
+        query = """
+            PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+            PREFIX celex: <http://rdf.ivdnt.org/lexica/celex>
+            PREFIX UD: <http://rdf.ivdnt.org/vocabs/UniversalDependencies2#>
+            PREFIX decomp: <http://www.w3.org/ns/lemon/decomp#>
+            PREFIX gold: <http://purl.org/linguistics/gold#>
+            
+            SELECT DISTINCT ?lemmaId ?lemma ?wordformId ?wordform ?number ?gender concat('', ?subLemmata) AS ?subLemmata
+            WHERE  {
+                ?lemmaId ontolex:canonicalForm [ontolex:writtenRep ?lemma] .
+                """+subpart+"""
+                BIND( ?lemmaId AS ?lemmaIdIRI ).
+                ?lemmaId ontolex:lexicalForm ?wordformId .
+                ?wordformId ontolex:writtenRep ?wordform .
+                OPTIONAL {?wordformId UD:Number ?number} .
+                OPTIONAL {
+                    ?lemmaId UD:Gender ?g . 
+                        bind( 
+                            if(?g = UD:Fem_Gender, 
+                            UD:Com_Gender, 
+                                if(?g = UD:Masc_Gender,
+                                    UD:Com_Gender,
+                                    UD:Neut_Gender
+                                )
+                            )
+                            AS ?gender
+                        )
+                }
+                OPTIONAL {
+                    SELECT ?lemmaIdIRI (group_concat(DISTINCT concat(?partNr,":",?subLemma);separator=" + ") as ?subLemmata)
+                    WHERE {
+                        SELECT ?lemmaIdIRI ?celexComp ?aWordformId ?subLemma ?partNr
+                        WHERE {
+                                {
+                                ?lemmaIdIRI ontolex:lexicalForm ?aWordformId . 
+                                ?lemmaIdIRI decomp:constituent ?celexComp .
+                                OPTIONAL { ?celexComp gold:stem [ontolex:writtenRep ?subLemma] . }
+                                OPTIONAL { ?celexComp decomp:correspondsTo [ ontolex:canonicalForm [ontolex:writtenRep ?subLemma]] . }
+                                }
+                                {
+                                    {
+                                        {?lemmaIdIRI <http://www.w3.org/1999/02/22-rdf-syntax-ns#_1> ?celexComp .}
+                                        UNION
+                                        {?lemmaIdIRI <http://www.w3.org/1999/02/22-rdf-syntax-ns#_2> ?celexComp .}
+                                        UNION
+                                        {?lemmaIdIRI <http://www.w3.org/1999/02/22-rdf-syntax-ns#_3> ?celexComp .}
+                                        UNION
+                                        {?lemmaIdIRI <http://www.w3.org/1999/02/22-rdf-syntax-ns#_4> ?celexComp .}
+                                        UNION
+                                        {?lemmaIdIRI <http://www.w3.org/1999/02/22-rdf-syntax-ns#_5> ?celexComp .}
+                                        UNION
+                                        {?lemmaIdIRI <http://www.w3.org/1999/02/22-rdf-syntax-ns#_6> ?celexComp .}                                        
+                                    }
+                                ?lemmaIdIRI ?rdfsynt ?celexComp .
+                                BIND(IF(STRSTARTS(str(?rdfsynt), "http://www.w3.org/1999/02/22-rdf-syntax-ns#"), replace(STRAFTER(str(?rdfsynt), "#"), "_", ""), "999") AS ?partNr) .
+                                MINUS {
+                                    ?lemmaIdIRI <http://www.w3.org/1999/02/22-rdf-syntax-ns#0> ?celexComp .
+                                    }
+                                }
+                            FILTER (?partNr != "999") .
+                            }
+                            ORDER BY ?partNr
+                            }
+                        GROUP BY ?aWordformId ?lemmaIdIRI
+                    }
+            }
+        """
+    else:
+        raise ValueError("Lexicon " + lexicon + " unknown!")
+        
+    return query
 
-        return query
+
+
+def corpus_query_lemma(lemma):
+    '''
+    This function builds a query for getting occurances of a given lemma within a given corpus
+    Args:
+        lemma: a lemma to look for 
+    Returns:
+        a corpus query string
+        
+    >>> lemma_query = corpus_query_lemma("lopen")
+    >>> df_corpus = search_corpus(lemma_query, "chn")
+    >>> display(df_corpus)
+    '''
+    return r'[lemma="'+ lemma + r'"]'
+
+
+def corpus_query_wordform(word):
+    '''
+    This function builds a query for getting occurances of a given wordform within a given corpus
+    Args:
+        word: a wordform to look for 
+    Returns:
+        a corpus query string
+        
+    >>> wordform_query = corpus_query_wordform("liep")
+    >>> df_corpus = search_corpus(wordform_query, "chn")
+    >>> display(df_corpus)
+    '''
+    return r'[word="'+ word + r'"]'
+
+def _lexicon_query_alllemmata(lexicon, pos):
+    '''
+    This function builds a query for getting all lemmata of a lexicon, if needed restricted to a given part-of-speech.
+    The resulting query string is to be used as a parameter of search_lexicon().
+    
+    Args:
+        lexicon: a lexicon name 
+        pos: (optional) a part-of-speech
+    Returns:
+        a lexicon query string
+    '''
+    
+    if (lexicon=="anw"):
+        # part-of-speech filter not supported for this lexicon
+        if (pos is not None and pos != ''):
+            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        query = """PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+                  PREFIX anw: <http://rdf.ivdnt.org/lexica/anw>                  
+                  SELECT DISTINCT ?writtenForm
+                  FROM <http://rdf.ivdnt.org/lexica/anw>
+                  WHERE {
+                      ?lemId rdfs:label ?lemma .
+                      ?lemId ontolex:canonicalForm ?lemCFId . 
+                      ?lemCFId ontolex:writtenRepresentation ?writtenForm .
+                      }
+                      ORDER BY ?writtenForm"""
+    elif (lexicon=="celex"):
+        # part-of-speech filter not supported for this lexicon
+        if (pos is not None and pos != ''):
+            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        query = """
+            PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+            
+            SELECT DISTINCT ?lemma AS ?writtenForm
+            WHERE  {
+                ?lemmaId ontolex:canonicalForm [ontolex:writtenRep ?lemma] .                
+                }
+            ORDER BY ?lemma"""
+    elif (lexicon=="diamant"):
+        # part-of-speech filter not supported for this lexicon
+        if (pos is not None and pos != ''):
+            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        query = """
+        PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+        prefix prov: <http://www.w3.org/ns/prov#>
+        prefix diamant: <http://rdf.ivdnt.org/schema/diamant#>
+        prefix lexinfo: <http://www.lexinfo.net/ontology/2.0/lexinfo#>
+        prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        prefix lemon: <http://lemon-model.net/lemon#>
+        prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+        prefix ud: <http://universaldependencies.org/u/pos/>
+        prefix skos: <http://www.w3.org/2004/02/skos/core#>
+        prefix dcterms: <http://purl.org/dc/terms/>
+        prefix dc: <http://purl.org/dc/terms/>
+
+        select DISTINCT ?n_ontolex_writtenRep AS ?writtenForm
+        where
+        {
+        graph ?g
+        {
+        {
+            { ?n_form ontolex:writtenRep ?n_ontolex_writtenRep} .
+            { ?n_form a ontolex:Form} .
+        }
+        }
+        }
+        ORDER BY ?n_ontolex_writtenRep
+        LIMIT 10000
+        """
+    elif (lexicon=="duelme"):
+        # part-of-speech filter not supported for this lexicon
+        if (pos is not None and pos != ''):
+            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        query = """
+            PREFIX lmf: <http://www.lexinfo.net/lmf>            
+            SELECT DISTINCT ?lemma AS ?writtenForm
+            WHERE  {
+                  ?y lmf:hasLemma ?lemma . 
+            }
+            ORDER BY ?lemma"""
+    elif (lexicon=="molex"):
+        # part-of-speech filter
+        pos_condition = """"""
+        if pos is not None and pos != '':
+            pos_condition = """
+            {?lemEntryId UD:pos ?lemPos .
+            FILTER regex(?lemPos, '"""+pos+"""') } .
+            """
+        query = """
+                PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+                PREFIX UD: <http://universaldependencies.org/u/>
+                SELECT DISTINCT ?lemma AS ?writtenForm
+                FROM <http://rdf.ivdnt.org/lexica/molex>
+                WHERE
+                {
+                ?lemEntryId ontolex:canonicalForm ?lemCFId .
+                ?lemCFId ontolex:writtenRep ?lemma .  
+                """+pos_condition+"""
+                }
+                 ORDER BY ?lemma"""
+    else:
+        raise ValueError("Lexicon " + lexicon + " not supported for querying all words.")
+        
+    #print(query)
+    return query
+
