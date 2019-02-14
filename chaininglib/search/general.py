@@ -1,12 +1,10 @@
-
 import xml.etree.ElementTree as ET
-import chaininglib.constants as constants
-from chaininglib.search.corpus import _corpus_metadata_blacklab
-from chaininglib.search.lexicon import _metadata_from_lexicon_query
-
-
 
 def get_available_metadata(resource_name, resource_type=None):
+    import chaininglib.constants as constants
+    from chaininglib.search.corpus import _corpus_metadata_blacklab
+    from chaininglib.search.lexicon import _metadata_from_lexicon_query
+    
     '''
     Return all possible metadata fields for a lexicon or corpus
     

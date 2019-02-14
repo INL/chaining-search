@@ -1,19 +1,13 @@
 import requests
 from collections import defaultdict
-import pandas as pd
 import xml.etree.ElementTree as ET
-import json
 import urllib
-#import wx   # for interaction popups          TODO -> omzetten naar JS of zo
-import itertools # for frequency list function and from_iterable
-import numpy as np     # idem
 
-from chaininglib.wait import *
-import chaininglib.constants as constants
-from chaininglib.ui import *
-#from chaininglib.search.general import _show_error_if_any
 
-def _parse_xml(text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):
+def _parse_xml(text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):    
+    import pandas as pd
+    import chaininglib.constants as constants
+    
     '''
     This function converts the XML output of a lexicon or corpus search into a Pandas DataFrame for further processing
     
@@ -133,6 +127,8 @@ def _show_error_if_any(text):
         print("; ".join(msgs))
 
 def _corpus_metadata_blacklab(corpus_name):
+    import chaininglib.constants as constants
+    
     '''
     Return all possible metadata fields for a BlackLab-based corpus, by sending a request to the corpus
     
@@ -187,6 +183,9 @@ def corpus_options(detailed_context=False, extra_fields_doc=[], extra_fields_tok
 
 # Deprecated, replaced by CorpusQuery
 def search_corpus(query, corpus, corpus_options=None):
+    from chaininglib.wait import show_wait_indicator, remove_wait_indicator
+    import chaininglib.constants as constants
+    
     '''
     This function searches a corpus given a query and a corpus name
     Args:

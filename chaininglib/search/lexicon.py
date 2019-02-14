@@ -1,8 +1,5 @@
 import requests
 import pandas as pd
-import json
-from chaininglib.wait import *
-from chaininglib.queries import _lexicon_query_alllemmata
 
 def _metadata_from_lexicon_query(lex_query):
     '''
@@ -34,6 +31,7 @@ def _metadata_from_lexicon_query(lex_query):
 
 # Deprecated, replaced by LexiconQuery
 def search_lexicon_all(lexicon, pos=None):
+    from chaininglib.queries import _lexicon_query_alllemmata
     '''
     This function gets all lemmata of a lexicon. If needed, the output can be restricted to lemmata with a given part-of-speech
     Args:
@@ -51,6 +49,8 @@ def search_lexicon_all(lexicon, pos=None):
 
 # Deprecated, replaced by LexiconQuery
 def search_lexicon(query, lexicon):
+    import json
+    from chaininglib.wait import show_wait_indicator, remove_wait_indicator
     '''
     This function searches a lexicon given a query and a lexicon name
     Args:

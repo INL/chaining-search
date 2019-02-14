@@ -1,12 +1,8 @@
-
-from chaininglib.queries import containsRegex, lexicon_query
-from chaininglib.search.lexicon import search_lexicon_all, search_lexicon
-from chaininglib.search.corpus import search_corpus
-from chaininglib.search.Query import check_valid_df
 from chaininglib.search.CorpusQuery import *
 from chaininglib.search.LexiconQuery import *
 
-import numpy as np
+import itertools # for frequency list function and from_iterable
+import numpy as np     # idem
 import pandas as pd
 
 def property_freq(df, column_name):
@@ -23,7 +19,10 @@ def property_freq(df, column_name):
     df["perc"] = df["token count"] / total.iloc[0]
     return df
 
+
+
 def df_filter(df_column, regex_or_set, method='contains'):
+    from chaininglib.search.Query import check_valid_df
     '''
     Helper function to build some condition to filter a Pandas DataFrame, 
     given a column and some value(s) to filter this column with
@@ -74,6 +73,7 @@ def join_df(df_arr, join_type=None):
     return concat_df
 
 def column_difference(df_column1, df_column2):
+    from chaininglib.search.Query import check_valid_df
     '''
     This function computes differences and similarities between two Pandas DataFrames
     Args:
@@ -145,7 +145,7 @@ def get_frequency_list(lexicon, pos, corpus):
         # join set of lemmata to send them in a query all at once
         # beware: single quotes need escaping
         lemmata_list = "|".join(small_lemmata_set).replace("'", "\\\\'")
-        cq = create_corpus(corpus_name).pattern(r'[lemma="' + lemmata_list + r'"]')
+        cq = create_corpus(corpus).pattern(r'[lemma="' + lemmata_list + r'"]')
         df_corpus = cq.results()
 
         # store frequencies
@@ -205,7 +205,7 @@ def get_missing_wordforms(lexicon, pos, corpus):
         # join set of lemmata to send them in a query all at once
         # beware: single quotes need escaping
         lemmata_list = "|".join(small_lemmata_set).replace("'", "\\\\'")
-        cq = create_corpus(corpus_name).pattern(r'[lemma="' + lemmata_list + r'"]')
+        cq = create_corpus(corpus).pattern(r'[lemma="' + lemmata_list + r'"]')
         df_corpus = cq.results()
         
         # process results
@@ -213,8 +213,8 @@ def get_missing_wordforms(lexicon, pos, corpus):
             for one_lemma in small_lemmata_set: 
                 
                 # look up the known wordforms in the lexicon
-                query = lexicon_query(one_lemma, pos, lexicon)
-                df_known_wordforms = create_lexicon(lexicon).pattern(query).results()
+                ql = create_lexicon(lexicon).lemma(one_lemma).pos(pos)
+                df_known_wordforms = ql.results()
                 
                 if (len(df_known_wordforms) != 0):
                     known_wordforms = set( df_known_wordforms['wordform'].str.lower() )
@@ -235,6 +235,7 @@ def get_missing_wordforms(lexicon, pos, corpus):
         
     
 def get_rank_diff(df1, df2):
+    from chaininglib.search.Query import check_valid_df
     '''
     This function compares the rankings of words common to two dataframes, and compute a rank_diff, in such
     a way that one can see which words are very frequent in one set and rare in the other.

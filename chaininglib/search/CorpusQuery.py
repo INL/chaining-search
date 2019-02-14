@@ -2,12 +2,6 @@ import copy
 import urllib
 import requests
 
-import chaininglib.constants as constants
-from chaininglib.search.corpus import *
-from chaininglib.wait import *
-from chaininglib.search.corpus import _parse_xml, _show_error_if_any
-
-
 
 class CorpusQuery:
     """ A query on a token-based corpus. """
@@ -49,6 +43,9 @@ class CorpusQuery:
         return self._copyWith('_metadata_filter', metadata_filter)
 
     def results(self):
+        import chaininglib.constants as constants
+        from chaininglib.wait import show_wait_indicator, remove_wait_indicator
+        from chaininglib.search.corpus import _parse_xml, _show_error_if_any
         
         if self._corpus not in constants.AVAILABLE_CORPORA:
             raise ValueError("Unknown corpus: " + self._corpus)

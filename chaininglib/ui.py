@@ -1,21 +1,17 @@
 import sys
 import ipywidgets as widgets
 from IPython.display import display
-#import tkinter as tk
-#from tkinter import filedialog
 from pathlib import Path
 from IPython.display import Javascript
 from IPython.core.display import display, HTML
 import matplotlib.pyplot as plt
 import re
-
-import chaininglib.constants as constants
-from chaininglib.search.Query import check_valid_df
-    
+  
     
     
 
 def create_corpus_ui():
+    import chaininglib.constants as constants
     '''
     This function builds a GUI for corpus search
     
@@ -48,6 +44,7 @@ def create_corpus_ui():
     return corpusQueryField, corpusField
 
 def create_lexicon_ui():
+    import chaininglib.constants as constants
     '''
     This function builds a GUI for lexicon search.
     
@@ -79,6 +76,7 @@ def create_lexicon_ui():
 
 
 def create_save_dataframe_ui(df, filename=None):
+    from chaininglib.search.Query import check_valid_df
     '''
     This function builds a GUI for saving the results of some lexicon or corpus query to a .csv file.
     One can use load_dataframe(filepath) to reload the results later on.
@@ -161,6 +159,7 @@ def load_dataframe(filepath):
     
     
 def display_df(dfs, labels=None, mode='table'):
+    from chaininglib.search.Query import check_valid_df
     '''
     This function shows the content of one or more Pandas DataFrames.
     When dealing with more DataFrames, those should be part of a dictionary associating

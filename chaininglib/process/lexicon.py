@@ -1,6 +1,6 @@
-from chaininglib.search.Query import check_valid_df
 
 def diamant_get_synonyms(df):
+    from chaininglib.search.Query import check_valid_df
     '''
     This function gets lemmata or definitions out of a Pandas DataFrame with Diamant data. 
     The output set content depends on the result type.

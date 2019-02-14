@@ -1,9 +1,5 @@
-import chaininglib.constants as constants
-from chaininglib.ui import *
-from chaininglib.queries import lexicon_query
-
-from chaininglib.wait import *
-
+import json
+import pandas as pd
 import copy
 import urllib
 import requests
@@ -33,6 +29,9 @@ class LexiconQuery:
         return self._copyWith('_pos', p)
 
     def results(self):
+        from chaininglib.queries import lexicon_query
+        import chaininglib.constants as constants
+        from chaininglib.wait import show_wait_indicator, remove_wait_indicator
         
         if self._lexicon not in constants.AVAILABLE_LEXICA:
             raise ValueError("Unknown lexicon: " + self._lexicon)
