@@ -1,6 +1,10 @@
 import chaininglib.constants as constants
 from chaininglib.ui import *
+from chaininglib.queries import lexicon_query
 
+from chaininglib.wait import *
+
+import copy
 import urllib
 import requests
 
@@ -43,7 +47,7 @@ class LexiconQuery:
         show_wait_indicator('Searching '+self._lexicon)
 
         # default endpoint, except when diamant is invoked
-        endpoint = AVAILABLE_LEXICA[self._lexicon]        
+        endpoint = constants.AVAILABLE_LEXICA[self._lexicon]        
 
         try:
             # Accept header is needed for virtuoso, it isn't otherwise!

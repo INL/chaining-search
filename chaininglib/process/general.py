@@ -123,7 +123,7 @@ def get_frequency_list(lexicon, pos, corpus):
     print('Beware: building a frequency list can take a long time')
     
     # LEXICON: get a lemmata list to work with
-    lq = lexicon(lexicon_name).pos(pos)
+    lq = create_lexicon(lexicon).pos(pos)
     df_lexicon = lq.results()
     lexicon_lemmata_set = sorted( set([w.lower() for w in df_lexicon["writtenForm"]]) )
     lexicon_lemmata_arr= np.array(lexicon_lemmata_set)
@@ -145,7 +145,7 @@ def get_frequency_list(lexicon, pos, corpus):
         # join set of lemmata to send them in a query all at once
         # beware: single quotes need escaping
         lemmata_list = "|".join(small_lemmata_set).replace("'", "\\\\'")
-        cq = corpus(corpus_name).pattern(r'[lemma="' + lemmata_list + r'"]')
+        cq = create_corpus(corpus_name).pattern(r'[lemma="' + lemmata_list + r'"]')
         df_corpus = cq.results()
 
         # store frequencies
@@ -182,7 +182,7 @@ def get_missing_wordforms(lexicon, pos, corpus):
     print('Beware: finding missing wordforms in a lexicon can take a long time');
     
     # LEXICON: get a lemmata list to work with
-    lq = lexicon(lexicon_name).pos(pos)
+    lq = create_lexicon(lexicon).pos(pos)
     df_lexicon = lq.results()
     lexicon_lemmata_set = sorted( set([w.lower() for w in df_lexicon["writtenForm"]]) )
     lexicon_lemmata_arr= np.array(lexicon_lemmata_set)
@@ -205,7 +205,7 @@ def get_missing_wordforms(lexicon, pos, corpus):
         # join set of lemmata to send them in a query all at once
         # beware: single quotes need escaping
         lemmata_list = "|".join(small_lemmata_set).replace("'", "\\\\'")
-        cq = corpus(corpus_name).pattern(r'[lemma="' + lemmata_list + r'"]')
+        cq = create_corpus(corpus_name).pattern(r'[lemma="' + lemmata_list + r'"]')
         df_corpus = cq.results()
         
         # process results
@@ -214,7 +214,7 @@ def get_missing_wordforms(lexicon, pos, corpus):
                 
                 # look up the known wordforms in the lexicon
                 query = lexicon_query(one_lemma, pos, lexicon)
-                df_known_wordforms = search_lexicon(query, lexicon)
+                df_known_wordforms = create_lexicon(lexicon).pattern(query).results()
                 
                 if (len(df_known_wordforms) != 0):
                     known_wordforms = set( df_known_wordforms['wordform'].str.lower() )

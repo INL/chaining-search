@@ -1,19 +1,13 @@
 import copy
 import urllib
 import requests
-import sys
 
 import chaininglib.constants as constants
+from chaininglib.search.corpus import *
+from chaininglib.wait import *
 from chaininglib.search.corpus import _parse_xml, _show_error_if_any
 
-def show_wait_indicator(message=None):
-    
-    print('...' + (message if message else 'Busy now') + '...', end="\r") 
-    sys.stdout.write("\033[F")
 
-def remove_wait_indicator():    
-    print('                                                                    ', end="\r")
-    sys.stdout.write("\033[F")
 
 class CorpusQuery:
     """ A query on a token-based corpus. """
@@ -66,7 +60,7 @@ class CorpusQuery:
         if type(self._pattern) is list:
             result_dict = {}
             for one_pattern in self._pattern:
-                cq = corpus(self._corpus).pattern(one_pattern)
+                cq = create_corpus(self._corpus).pattern(one_pattern)
                 result_dict[one_pattern] = cq.results()
             return result_dict
             
