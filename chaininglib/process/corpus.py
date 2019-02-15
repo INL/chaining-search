@@ -9,7 +9,9 @@ def get_tagger(df_corpus, word_key="word", pos_key="universal_dependency"):
     Returns:
         a PerceptronTagger instance 
     
-    >>> tagger = get_tagger(df_corpus)  # df_corpus containes a Pandas DataFrame with lots of corpus data
+    >>> # get a tagger, trained with df_corpus: a Pandas DataFrame with lots of corpus data
+    >>> tagger = get_tagger(df_corpus)  
+    >>> # tag a sentence now
     >>> sentence = 'Here is some beautiful sentence'
     >>> tagged_sentence = tagger.tag( sentence.split() )
     >>> print(tagged_sentence) 

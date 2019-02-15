@@ -32,33 +32,72 @@ class CorpusQuery:
         return c
 
     def pattern(self, p):
+        '''
+        Set a corpus search pattern 
+        '''
         return self._copyWith('_pattern', p)
     
     def lemma(self, l):
+        '''
+        Set a lemma as part of a corpus search pattern
+        '''
         return self._copyWith('_lemma', l)
     
     def word(self, w):
+        '''
+        Set a word as part of a corpus search pattern
+        '''
         return self._copyWith('_word', w)
     
     def pos(self, p):
+        '''
+        Set a part-of-speech as part of a corpus search pattern
+        '''
         return self._copyWith('_pos', p)
 
     def detailed_context(self, detailed_context=True):
+        '''
+        Request a corpus search object to return a detailed context.
+        If True, every single tokens will be returned with multiple information layers (like lemma, wordfor, part-of-speech, ...)
+        If False, only hits will have multiple information layers
+        '''
         return self._copyWith('_detailed_context', detailed_context)
 
     def extra_fields_doc(self, extra_fields_doc):
+        '''
+        Request a corpus search object to return the named document metadata fields.
+        '''
         return self._copyWith('_extra_fields_doc', extra_fields_doc)
 
     def extra_fields_token(self, extra_fields_token):
+        '''
+        Request a corpus search object to return the named extra token layers.
+        '''
         return self._copyWith('_extra_fields_token', extra_fields_token)
 
     def start_position(self, start_position):
+        '''
+        Request a corpus search object to return the stated page number of the whole result pages collection.
+        This option might not be used by users, but the search procedure needs this to be able to retrieve
+        full results, as those might be spread among more pages.
+        '''
         return self._copyWith('_start_position', start_position)
 
     def metadata(self, metadata_filter):
+        '''
+        What is the function of this one again????????
+        '''
         return self._copyWith('_metadata_filter', metadata_filter)
 
     def results(self):
+        '''
+        Request results matching a corpus search query
+        
+        >>> # build a corpus search query
+        >>> corpus_obj = create_corpus(some_corpus).pattern(some_pattern)
+        >>> # get the results
+        >>> df = corpus_obj.results()
+        '''
         if self._corpus not in constants.AVAILABLE_CORPORA:
             raise ValueError("Unknown corpus: " + self._corpus)
             
@@ -123,5 +162,11 @@ class CorpusQuery:
 
 
 def create_corpus(name):
+    '''
+    API constructor
+    
+    >>> corpus_obj = create_corpus(some_corpus).pattern(some_pattern)
+    >>> df = corpus_obj.results()
+    '''
     return CorpusQuery(name)
 

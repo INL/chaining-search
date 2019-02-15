@@ -6,8 +6,8 @@ def corpus_query(lemma=None, word=None, pos=None):
     Returns:
         a corpus query string
         
-    >>> lemma_query = corpus_query_lemma("lopen")
-    >>> df_corpus = search_corpus(lemma_query, "chn")
+    >>> lemma_query = corpus_query(lemma="lopen")
+    >>> df_corpus = create_corpus("chn").pattern(lemma_query).results()
     >>> display(df_corpus)
     '''
     

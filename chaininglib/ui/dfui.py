@@ -103,9 +103,15 @@ def display_df(dfs, labels=None, mode='table'):
         mode (Optional): Way of displaying, one of 'table' (default) or 'chart' 
     Returns:
         N/A
-        
-    >>> result_dict = search_corpus_multiple(queries, corpus)
-    >>> display_df(result_dict, labels=list(syns))
+    
+    >>> # call with a single pattern
+    >>> df_corpus = create_corpus(corpus_to_search).pattern(some_query).results()
+    >>> display_df(df_corpus)
+    
+    >>> # call with a list of pattern
+    >>> list_of_queries = [ corpus_query(lemma=syn) for syn in syn_list ]
+    >>> result_dict = create_corpus(corpus).pattern(list_of_queries).results()
+    >>> display_df(result_dict, labels=list(syn_list))
     '''
     
     if type(dfs) is dict:

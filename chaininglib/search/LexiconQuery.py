@@ -26,13 +26,26 @@ class LexiconQuery:
         return c
 
     def lemma(self, l):
+        '''
+        Set a lemma as part of a lexicon search pattern
+        '''
         return self._copyWith('_lemma', l)
     
     def pos(self, p):
+        '''
+        Set a part-of-speech as part of a lexicon search pattern
+        '''
         return self._copyWith('_pos', p)
 
     def results(self):
+        '''
+        Request results matching a lexicon search query
         
+        >>> # build a lexicon search query
+        >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma)
+        >>> # get the results
+        >>> df = lexicon_obj.results()
+        '''
         if self._lexicon not in constants.AVAILABLE_LEXICA:
             raise ValueError("Unknown lexicon: " + self._lexicon)
             
@@ -71,4 +84,10 @@ class LexiconQuery:
 
 
 def create_lexicon(name):
+    '''
+    API constructor
+    
+    >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma)
+    >>> df = lexicon_obj.results()
+    '''
     return LexiconQuery(name)

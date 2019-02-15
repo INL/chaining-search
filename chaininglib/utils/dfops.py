@@ -2,6 +2,15 @@ import pandas as pd
 
 
 def check_valid_df(function_name, obj):
+    '''
+    This function is called by others to check if input is a DataFrame, when it is expected!
+    If the input does not contain a DataFrame, throw an error
+    Args:
+        function_name: the name of the function, so as to be able to show where an error occured
+        obj: the object to be checked
+    Returns:
+        N/A
+    '''
     if not isinstance(obj, pd.DataFrame):
         raise ValueError(function_name+"() was requires a Pandas DataFrame as argument. You might have forgotten to use object.results().")
 

@@ -14,8 +14,8 @@ def _parse_xml(text, detailed_context=False, extra_fields_doc=[], extra_fields_t
     Args:
         text: the XML response of a lexicon/corpus search, as a string
         detailed_context: (optional) True to parse the layers of all tokens, False to limit detailed parsing to hits
-        extra_fields_doc: 
-        extra_fields_token: 
+        extra_fields_doc: extra document metadata fields to add to the results, if needed
+        extra_fields_token: extra token layers to add to the results, if needed
     Returns:
         df: a Pandas DataFrame representing the parse results
         next_pos: the next result page to be parsed (since the results might be spread among several XML response pages), 

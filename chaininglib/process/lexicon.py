@@ -10,8 +10,7 @@ def diamant_get_synonyms(df):
     Returns:
         a set of lemmata OR a set of synonym definitions
         
-    >>> query = lexicon_query(word=search_word, pos= '', lexicon=lexicon)
-    >>> df_lexicon = search_lexicon(query, lexicon)
+    >>> df_lexicon = create_lexicon(lexicon).word(search_word).results()
     >>> syns = diamant_get_synonyms(df_lexicon) 
     >>> display( 'Synoniemen voor ' + search_word + ': ' + ", ".join(syns)))
     '''
