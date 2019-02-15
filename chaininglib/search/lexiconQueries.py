@@ -1,21 +1,6 @@
-import re
+import chaininglib.utils.stringutils as stringutils
 
-
-def containsRegex(word):
-    '''
-    This function checks whether some string contains a regular expression or not
     
-    Args:
-        word: a string to check for regular expressions
-    Returns:
-        A boolean
-    '''
-    return ( word.find('^')>-1 or
-            word.find('$')>-1 or 
-            re.match("\(.+?\)", word) or
-            re.match("\[.+?\]", word) or
-            re.match("[\+*]", word) )
-                     
 def lexicon_query(word, pos, lexicon):
     '''
     This function builds a query for getting the paradigm etc. of a given lemma out of a given lexicon.
@@ -37,7 +22,7 @@ def lexicon_query(word, pos, lexicon):
         if (pos is not None and pos != ''):
             print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
         # exact or fuzzy search
-        exactsearch = (not containsRegex(word))
+        exactsearch = (not stringutils.containsRegex(word))
         subpart = """FILTER ( regex(?lemma, \""""+word+"""\") || regex(?definition, \""""+word+"""\") ) . """
         if (exactsearch == True):
               subpart =  """
@@ -69,7 +54,7 @@ def lexicon_query(word, pos, lexicon):
         if (pos is not None and pos != ''):
             print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
         # exact or fuzzy search
-        exactsearch = (not containsRegex(word))
+        exactsearch = (not stringutils.containsRegex(word))
         subpart1 = """?n_form ontolex:writtenRep ?n_ontolex_writtenRep . 
             FILTER regex(?n_ontolex_writtenRep, \""""+word+"""\") . """
         subpart2 = """?n_syndef diamant:definitionText ?n_syndef_definitionText .  
@@ -167,7 +152,7 @@ def lexicon_query(word, pos, lexicon):
         }"""
     elif (lexicon=="molex"):
         # exact or fuzzy search
-        exactsearch = (not containsRegex(word))
+        exactsearch = (not stringutils.containsRegex(word))
         subpart1 = """"""
         subpart2 = """"""
         subpartPos = """"""
@@ -213,7 +198,7 @@ def lexicon_query(word, pos, lexicon):
         if (pos is not None and pos != ''):
             print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
         # exact or fuzzy search
-        exactsearch = (not containsRegex(word))
+        exactsearch = (not stringutils.containsRegex(word))
         subpart = """FILTER ( regex(?lemma, \""""+word+"""\") || regex(?wordform, \""""+word+"""\") ) ."""
         if (exactsearch == True):
             subpart =  """
@@ -242,7 +227,7 @@ def lexicon_query(word, pos, lexicon):
         if (pos is not None and pos != ''):
             print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
         # exact or fuzzy search
-        exactsearch = (not containsRegex(word))
+        exactsearch = (not stringutils.containsRegex(word))
         subpart = """FILTER ( regex(?lemma, \""""+word+"""\") ) . """
         if (exactsearch == True):
             subpart =  """
@@ -322,35 +307,6 @@ def lexicon_query(word, pos, lexicon):
     return query
 
 
-
-def corpus_query_lemma(lemma):
-    '''
-    This function builds a query for getting occurances of a given lemma within a given corpus
-    Args:
-        lemma: a lemma to look for 
-    Returns:
-        a corpus query string
-        
-    >>> lemma_query = corpus_query_lemma("lopen")
-    >>> df_corpus = search_corpus(lemma_query, "chn")
-    >>> display(df_corpus)
-    '''
-    return r'[lemma="'+ lemma + r'"]'
-
-
-def corpus_query_wordform(word):
-    '''
-    This function builds a query for getting occurances of a given wordform within a given corpus
-    Args:
-        word: a wordform to look for 
-    Returns:
-        a corpus query string
-        
-    >>> wordform_query = corpus_query_wordform("liep")
-    >>> df_corpus = search_corpus(wordform_query, "chn")
-    >>> display(df_corpus)
-    '''
-    return r'[word="'+ word + r'"]'
 
 def _lexicon_query_alllemmata(lexicon, pos):
     '''

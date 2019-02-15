@@ -3,6 +3,9 @@ import pandas as pd
 import copy
 import urllib
 import requests
+import chaininglib.constants as constants
+import chaininglib.ui.status as status
+import chaininglib.search.lexiconQueries as lexiconQueries
 
 class LexiconQuery:
     """ A query on a lexicon. """
@@ -29,9 +32,6 @@ class LexiconQuery:
         return self._copyWith('_pos', p)
 
     def results(self):
-        from chaininglib.queries import lexicon_query
-        import chaininglib.constants as constants
-        from chaininglib.wait import show_wait_indicator, remove_wait_indicator
         
         if self._lexicon not in constants.AVAILABLE_LEXICA:
             raise ValueError("Unknown lexicon: " + self._lexicon)
@@ -40,10 +40,10 @@ class LexiconQuery:
             raise ValueError('A lemma and/or a part-of-speech is required')
             
         # build query
-        query = lexicon_query(self._lemma, self._pos, self._lexicon)
+        query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._lexicon)
             
         # show wait indicator, so the user knows what's happening
-        show_wait_indicator('Searching '+self._lexicon)
+        status.show_wait_indicator('Searching '+self._lexicon)
 
         # default endpoint, except when diamant is invoked
         endpoint = constants.AVAILABLE_LEXICA[self._lexicon]        
@@ -62,11 +62,11 @@ class LexiconQuery:
             df = df.applymap(lambda x: '' if pd.isnull(x) else x["value"])         
 
             # remove wait indicator, 
-            remove_wait_indicator()
+            status.remove_wait_indicator()
 
             return df
         except Exception as e:
-            remove_wait_indicator()
+            status.remove_wait_indicator()
             raise ValueError("An error occured when searching lexicon " + self._lexicon + ": "+ str(e))
 
 

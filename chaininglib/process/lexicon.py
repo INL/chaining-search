@@ -1,6 +1,6 @@
+import chaininglib.utils.dfops as dfops
 
-def diamant_get_synonyms(df):
-    from chaininglib.search.Query import check_valid_df
+def diamant_get_synonyms(df):    
     '''
     This function gets lemmata or definitions out of a Pandas DataFrame with Diamant data. 
     The output set content depends on the result type.
@@ -16,7 +16,7 @@ def diamant_get_synonyms(df):
     >>> display( 'Synoniemen voor ' + search_word + ': ' + ", ".join(syns)))
     '''
     
-    check_valid_df("diamant_get_synonyms", df)
+    dfops.check_valid_df("diamant_get_synonyms", df)
     
     # Depending on the result type, we return the lemma or the definition text
     lemmas = set(df[df["inputMode"]=="defText"]["n_ontolex_writtenRep"])

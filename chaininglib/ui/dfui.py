@@ -1,82 +1,13 @@
-import sys
 import ipywidgets as widgets
-from IPython.display import display
 from pathlib import Path
 from IPython.display import Javascript
-from IPython.core.display import display, HTML
-import matplotlib.pyplot as plt
+from IPython.core.display import display, HTML   # print HTML
+import matplotlib.pyplot as plt  # display_df
 import re
-  
-    
-    
-
-def create_corpus_ui():
-    import chaininglib.constants as constants
-    '''
-    This function builds a GUI for corpus search
-    
-    Args:
-        N/A
-    Returns:
-        N/A
-    '''
-    
-    # Create UI elements
-    corpusQueryField = widgets.Text(description="<b>CQL query:</b>", value=constants.DEFAULT_QUERY)
-    corpusField = widgets.Dropdown(
-        options=constants.AVAILABLE_CORPORA.keys(),
-        value=constants.DEFAULT_CORPUS,
-        description='<b>Corpus:</b>',
-    )
-    '''corpusSearchButton = widgets.Button(
-        description='Search',
-        button_style='info', # 'success', 'info', 'warning', 'danger' or ''
-        tooltip='Search',
-    )
-    # Handle events
-    corpusSearchButton.on_click(corpus_search)'''
-    
-    # Stack UI elements in vertical box and display
-    corpusUiBox = widgets.VBox([corpusQueryField,corpusField])
-    display(corpusUiBox)
-    
-    # Return fields, so their contents are accessible from the global namespace of the Notebook
-    return corpusQueryField, corpusField
-
-def create_lexicon_ui():
-    import chaininglib.constants as constants
-    '''
-    This function builds a GUI for lexicon search.
-    
-    Args:
-        N/A
-    Returns:
-        N/A
-    '''
-   
-
-    # Create UI elements
-    searchWordField = widgets.Text(description="<b>Word:</b>", value=constants.DEFAULT_SEARCHWORD)
-    lexiconField = widgets.Dropdown(
-        options=constants.AVAILABLE_LEXICA.keys(),
-        value=constants.DEFAULT_LEXICON,
-        description='<b>Lexicon:</b>',
-    )
-    '''lexSearchButton = widgets.Button(
-        description='Search',
-        button_style='info', # 'success', 'info', 'warning', 'danger' or ''
-        tooltip='Search',
-    )
-    # Handle events
-    lexSearchButton.on_click(lexicon_search)'''
-    # Stack UI elements in vertical box and display
-    lexUiBox = widgets.VBox([searchWordField,lexiconField])
-    display(lexUiBox)
-    return searchWordField, lexiconField
+import chaininglib.utils.dfops as dfops
 
 
-def create_save_dataframe_ui(df, filename=None):
-    from chaininglib.search.Query import check_valid_df
+def create_save_dataframe_ui(df, filename=None):    
     '''
     This function builds a GUI for saving the results of some lexicon or corpus query to a .csv file.
     One can use load_dataframe(filepath) to reload the results later on.
@@ -88,7 +19,7 @@ def create_save_dataframe_ui(df, filename=None):
         N/A
     '''
     
-    check_valid_df("create_save_dataframe_ui", df)
+    dfops.check_valid_df("create_save_dataframe_ui", df)
     
     # build ui for saving results
     default_filename = 'mijn_resultaten.csv' if filename is None else re.sub('[\W_]+', '', filename)+".csv"
@@ -109,6 +40,7 @@ def create_save_dataframe_ui(df, filename=None):
     savebutton.on_click( _save_dataframe )    
     saveResultsBox = widgets.HBox([saveResultsCaption, fileNameField, savebutton])
     display(saveResultsBox)
+    
     
 def _save_dataframe(button):
     fileName = button.tooltip
@@ -158,8 +90,8 @@ def load_dataframe(filepath):
         return df
     
     
+    
 def display_df(dfs, labels=None, mode='table'):
-    from chaininglib.search.Query import check_valid_df
     '''
     This function shows the content of one or more Pandas DataFrames.
     When dealing with more DataFrames, those should be part of a dictionary associating
@@ -176,8 +108,6 @@ def display_df(dfs, labels=None, mode='table'):
     >>> display_df(result_dict, labels=list(syns))
     '''
     
-    check_valid_df("display_df", dfs)
-    
     if type(dfs) is dict:
     
         assert len(labels)==len(dfs)
@@ -186,6 +116,7 @@ def display_df(dfs, labels=None, mode='table'):
             if not df.empty:
                 _display_single_df(df, labels[n], mode)
     else:
+        dfops.check_valid_df("display_df", dfs)
         _display_single_df(dfs, labels, mode)
 
 
@@ -205,4 +136,4 @@ def _display_single_df(df_column, label, mode):
     
     # eventually, give UI to save data
     create_save_dataframe_ui(df_column, label)
-
+    
