@@ -1,5 +1,7 @@
 import pandas as pd
 
+
+# Test url extern: http://brievenalsbuit.ato.ivdnt.org/blacklab-server/zeebrieven
 AVAILABLE_CORPORA = {'chn':'http://svprmc05.inl.nl/blacklab-server/chn',
                      'opensonar':'http://172.16.10.93:8080/blacklab-server/opensonar',
                      'zeebrieven':'http://svprmc20.ivdnt.org/blacklab-server/zeebrieven',
@@ -19,7 +21,7 @@ DEFAULT_FIELDS_TOKEN = ["word", "lemma", "universal_dependency"]
 DEFAULT_FIELDS_DOC = []
 
 # For UI
-DEFAULT_QUERY = r'[lemma="boek" & pos="verb"]' #r'[lemma="boeken" pos="verb"]'
+DEFAULT_QUERY = r'[lemma="boek"]'
 DEFAULT_CORPUS = "chn"
 DEFAULT_SEARCHWORD = 'boek'
 DEFAULT_LEXICON = "diamant"

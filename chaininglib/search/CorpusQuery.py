@@ -9,7 +9,7 @@ import chaininglib.search.corpusQueries as corpusQueries
 class CorpusQuery:
     """ A query on a token-based corpus. """
 
-    def __init__(self, corpus, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 1, metadata_filter={}):
+    def __init__(self, corpus, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 1, metadata_filter={}, method="fcs"):
         
         self._corpus = corpus
         self._pattern = pattern        
@@ -21,10 +21,11 @@ class CorpusQuery:
         self._extra_fields_token = extra_fields_token
         self._start_position = start_position
         self._metadata_filter = metadata_filter
+        self._method = method
 
     def __str__(self):
         return 'CorpusQuery({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})'.format(
-            self._corpus, self._pattern, self._lemma, self._word, self._pos, self._detailed_context, self._extra_fields_doc, self._extra_fields_token, self._start_position, self._metadata_filter)
+            self._corpus, self._pattern, self._lemma, self._word, self._pos, self._detailed_context, self._extra_fields_doc, self._extra_fields_token, self._start_position, self._metadata_filter, self._method)
 
     def _copyWith(self, attrName, attrValue):
         c = copy.copy(self)
@@ -85,9 +86,15 @@ class CorpusQuery:
 
     def metadata(self, metadata_filter):
         '''
-        What is the function of this one again????????
+        Set metadata fields to filter results set on, after query has been performed.
         '''
         return self._copyWith('_metadata_filter', metadata_filter)
+    
+    def method(self, method):
+        '''
+        Set method to make request: fcs (Federated Content Search) or blacklab
+        '''
+        return self._copyWith('_method', method)
 
     def results(self):
         '''
@@ -122,7 +129,7 @@ class CorpusQuery:
             result_dict = {}
             for one_pattern in self._pattern:
                 
-                cq = CorpusQuery(self._corpus, pattern = one_pattern, lemma = self._lemma, word=self._word, pos=self._pos, detailed_context = self._detailed_context, extra_fields_doc = self._extra_fields_doc, extra_fields_token = self._extra_fields_token, start_position = self._start_position, metadata_filter=self._metadata_filter)
+                cq = CorpusQuery(self._corpus, pattern = one_pattern, lemma = self._lemma, word=self._word, pos=self._pos, detailed_context = self._detailed_context, extra_fields_doc = self._extra_fields_doc, extra_fields_token = self._extra_fields_token, start_position = self._start_position, metadata_filter=self._metadata_filter, method=self._method)
                 result_dict[one_pattern] = cq.results()
             return result_dict
             
@@ -131,17 +138,29 @@ class CorpusQuery:
         status.show_wait_indicator('Searching '+self._corpus+ ' at page '+str(self._start_position))   
         
         try:
-            # Do request to federated content search corpora, so we get same output format for every corpus
-            url = (
-                "http://portal.clarin.inl.nl/fcscorpora/clariah-fcs-endpoints/sru?operation=searchRetrieve&queryType=fcs"+
-                "&maximumRecords=1000" +
-                "&x-fcs-context=" + self._corpus + 
-                "&query=" + urllib.parse.quote(self._pattern)
-                   )
+            if self._method=="fcs":
+                # Do request to federated content search corpora, so we get same output format for every corpus
+                url = ( "http://portal.clarin.inl.nl/fcscorpora/clariah-fcs-endpoints/sru?operation=searchRetrieve&queryType=fcs"+
+                        "&maximumRecords=" + str(constants.RECORDS_PER_PAGE) +
+                        "&startRecord=" + str(self._start_position) +
+                        "&x-fcs-context=" + self._corpus + 
+                        "&query=" + urllib.parse.quote(self._pattern) )
+            elif self._method=="blacklab":
+                if constants.AVAILABLE_CORPORA[self._corpus] == "":
+                    raise ValueError("Blacklab access not available for this corpus.")
+                url = ( constants.AVAILABLE_CORPORA[self._corpus]+ "/hits?"
+                        "&number=" + str(constants.RECORDS_PER_PAGE) +
+                        "&first=" + str(self._start_position) +
+                        "&patt=" + urllib.parse.quote(self._pattern) )
+            else:
+                raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
             #print(url)
             response = requests.get(url)
-            response_text = response.text    
-            df, next_page = corpusParse._parse_xml(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
+            response_text = response.text
+            if self._method=="fcs":
+                df, next_page = corpusParse._parse_xml_fcs(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
+            elif self._method=="blacklab":
+                df, next_page = corpusParse._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
             # If there are next pages, call search_corpus recursively
             #print(next_page)
             if next_page > 0:

@@ -60,7 +60,8 @@ def _corpus_metadata_blacklab(corpus_name):
     return _parse_blacklab_metadata(response_text)
 
 
-# TODO: Method misses token fields which are extracted from POS tag by FCS (eg. inflection)
+
+# TODO: Dependent on Blacklab indexing which has been performed, this method could token fields which are extracted from POS tag by FCS (eg. inflection)
 def _parse_blacklab_metadata(text):
     '''
     This method parses metadata fields from a Blacklab metadata response
@@ -73,6 +74,7 @@ def _parse_blacklab_metadata(text):
     # TODO: should we secure against untrusted XML?
     root = ET.fromstring(text)
     doc_fields = [md.get("name") for md in root.iter("metadataField")]
+    # TODO: Maybe irrelevant but pay attention: after Blacklab update, token fields are under annotatedFields instead of complexFields
     token_fields = [prop.get("name") for prop in root.iter("property")]
     return {"document": doc_fields, "token": token_fields}
     

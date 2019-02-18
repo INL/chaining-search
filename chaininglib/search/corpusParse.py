@@ -5,11 +5,89 @@ import xml.etree.ElementTree as ET
 import urllib
 import chaininglib.constants as constants
 
-
-
-def _parse_xml(text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):
+####### TODO: unfinished
+def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):
     '''
-    This function converts the XML output of a lexicon or corpus search into a Pandas DataFrame for further processing
+    This function converts the Blacklab XML output of a lexicon or corpus search into a Pandas DataFrame for further processing
+    
+    Args:
+        text: the XML response of a lexicon/corpus search, as a string
+        detailed_context: (optional) True to parse the layers of all tokens, False to limit detailed parsing to hits
+        extra_fields_doc: extra document metadata fields to add to the results, if needed
+        extra_fields_token: extra token layers to add to the results, if needed
+    Returns:
+        df: a Pandas DataFrame representing the parse results
+        next_pos: the next result page to be parsed (since the results might be spread among several XML response pages), 
+        or 0 if there is no page left to be parsed
+    '''
+    
+    # TODO: should we secure against untrusted XML?
+    root = ET.fromstring(text)
+    records = []
+    records_len = []
+    n_tokens = 0
+    computed_nt = False
+    cols= []
+    
+    fields_token = constants.DEFAULT_FIELDS_TOKEN + extra_fields_token
+    fields_doc = constants.DEFAULT_FIELDS_DOC + extra_fields_doc
+    for entry in root.iter("hit"):
+        doc_metadata = {}
+        # Parse document metadata
+        #if(dataView.get("type")=="application/x-clariah-fcs-simple-metadata+xml"):
+        #    for keyval in dataView.findall("keyval"):
+        #        key = keyval.get("key")
+        #        if key in fields_doc:
+        #            value = keyval.get("value")
+        #            doc_metadata[key] = value
+
+        left = entry.find('left')
+        match = entry.find('match')
+        right = entry.find('match')
+        
+        if detailed_context:
+            tokens = left+match+right
+        else:
+            tokens = match
+          
+        for token in tokens:
+            
+            
+            
+            
+            
+        data, cols = _combine_layers(hit_layer, n_tokens, doc_metadata_req=fields_doc, doc_metadata_recv=doc_metadata)
+        if detailed_context is False:
+            left_context = left.itertext()
+            right_context = right.itertext()
+            kwic = [left_context] + data + [right_context]
+        else:
+            kwic = data
+        records.append(kwic)
+        records_len.append(n_tokens)
+                
+    if detailed_context is False:
+        columns = ["left context"] + cols + ["right context"]
+    else:
+        columns = cols
+    
+    next_pos = 0
+    next_record_position = root.find("{http://docs.oasis-open.org/ns/search-ws/sruResponse}nextRecordPosition")
+    if (next_record_position is not None):
+        next_pos = int(next_record_position.text)
+        
+        
+    # do some clean up now!
+    for i in range( len(records_len), 0, 1): 
+        if (records_len[i]<max_len):
+            del records[i]
+        
+    return pd.DataFrame(records, columns = columns), next_pos
+
+
+def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):
+    '''
+    This function converts the Federated Content Search XML output of a lexicon or corpus search into a Pandas DataFrame for further processing
     
     Args:
         text: the XML response of a lexicon/corpus search, as a string
