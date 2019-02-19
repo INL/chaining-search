@@ -12,7 +12,7 @@ def check_valid_df(function_name, obj):
         N/A
     '''
     if not isinstance(obj, pd.DataFrame):
-        raise ValueError(function_name+"() was requires a Pandas DataFrame as argument. You might have forgotten to use object.results().")
+        raise ValueError(function_name+"() requires a Pandas DataFrame as argument. You might have forgotten to use object.results().")
 
         
         
@@ -23,12 +23,71 @@ def property_freq(df, column_name):
         df: DataFrame with results, one row per found token
         column_name: Column name (property) to count
     Returns:
-        a DataFrame of the most values for this property, sorted by frequency. Column 'token count' contains the number of tokens, column 'perc' gives the percentage.
+        a DataFrame of the most values for this property, sorted by frequency. 
+        Column 'token count' contains the number of tokens, column 'perc' gives the percentage.
     '''
-    df = df.groupby(column_name).size().reset_index(name="token count").sort_values("token count",ascending=False).reset_index(drop=True)
+    
+    # classic group by + count, just like in SQL
+    df = df.groupby(column_name).size()
+    
+    # the new column with the counts is given the name "token count"
+    # and we set a new sequential index 
+    df = df.reset_index(name="token count")
+    
+    # sort by count, with the highest on top
+    df = df.sort_values("token count", ascending=False)
+    
+    # set a new sequential index again
+    # (the drop parameter makes sure the old index is NOT added as a column)
+    df = df.reset_index(drop=True)
+    
+    # compute percentage for each 
     total = df.sum(numeric_only=True, axis=0)
     df["perc"] = df["token count"] / total.iloc[0]
     return df
+
+
+
+def get_frequency_list(df_corpus):
+    '''
+    This function computes the raw frequency of lemmata in a DataFrame containing corpus data
+    Args:
+        df_corpus: a Pandas DataFrame with corpus data (it must contain at least one 'lemma' column)
+    Returns:
+        a Pandas DataFrame with 'lemmata' as index, 'token count' a number of occurences per lemma, 
+        and 'rank' as ordinal position in the list of lemmata, based on the 'token count'.
+    '''
+    # get a list of the columns named 'lemma...' 
+    all_col_names = list(df_corpus.columns.values)
+    lemma_col_names = [x for x in set(all_col_names) if str(x).startswith("lemma")]
+    
+    if len(lemma_col_names) == 0:
+        raise ValueError("function get_frequency_list() was called with a DataFrame which doesn't contain any 'lemma' column. If needed, rename the relevant column of your DataFrame into 'lemma'.")
+    
+    # instantiate a DataFrame with one single column 'lemmata',
+    # in which we will gather all single lemmata occurences
+    df_lemmata_list = pd.DataFrame()
+    
+    # loop through the list of lemma-column:
+    # For each of them, gather all unique lemmata and add those to the df_lemmata_list DataFrame
+    for col_name in lemma_col_names:
+        # rename the column in question to 'lemmata', so as to be able to merge this DataFrame with the full list of lemmata
+        sub_df_corpus = df_corpus[col_name]
+        df_lemmata_list = pd.concat( [df_lemmata_list, sub_df_corpus] )
+        
+    df_lemmata_list.columns=["lemmata"]
+        
+    # Use the property_freq to compute a frequency list
+    df_frequency_list = property_freq(df_lemmata_list, "lemmata")    
+    # set the lemmata column to be the index
+    df_frequency_list.set_index("lemmata")
+    
+    # final step: compute ranks
+    # this is needed to be able to compare different frequency lists 
+    # with each other (which we could achieve by computing a rank diff)
+    df_frequency_list['rank'] = df_frequency_list['token count'].rank(ascending = False).astype(int)
+    
+    return df_frequency_list
 
 
 
@@ -80,6 +139,8 @@ def join_df(df_arr, join_type=None):
     
     return concat_df
 
+
+
 def column_difference(df_column1, df_column2):    
     '''
     This function computes differences and similarities between two Pandas DataFrames
@@ -103,7 +164,7 @@ def column_difference(df_column1, df_column2):
     diff_right = set_df2.difference(set_df1)
     intersec = set_df1.intersection(set_df2)
     return diff_left, diff_right, intersec
-    
+   
 
     
 def get_rank_diff(df1, df2):    
@@ -112,8 +173,8 @@ def get_rank_diff(df1, df2):
     a way that one can see which words are very frequent in one set and rare in the other.
     
     Args:
-        df1: a Pandas DataFrame
-        df2: a Pandas DataFrame
+        df1: a Pandas DataFrame provided with rankings stored in a column "rank"
+        df2: a Pandas DataFrame provided with rankings stored in a column "rank"
     Returns:
         a Pandas DataFrame with lemmata (index), ranks of both input dataframes ('rank_1' and 'rank_2' columns) 
         and the rank_diff ('rank_diff' column).

@@ -91,3 +91,10 @@ def create_lexicon(name):
     >>> df = lexicon_obj.results()
     '''
     return LexiconQuery(name)
+
+
+def get_available_lexica():
+    '''
+    This function returns the list of the available lexica
+    '''
+    return list(constants.AVAILABLE_LEXICA.keys())
