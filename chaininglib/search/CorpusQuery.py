@@ -193,3 +193,4 @@ def create_corpus(name):
     >>> df = corpus_obj.results()
     '''
     return CorpusQuery(name)
+
