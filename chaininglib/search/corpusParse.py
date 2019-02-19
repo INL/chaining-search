@@ -11,7 +11,7 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
     This function converts the Blacklab XML output of a lexicon or corpus search into a Pandas DataFrame for further processing
     
     Args:
-        text: the XML response of a lexicon/corpus search, as a string
+        text: the XML response of a corpus search, as a string
         detailed_context: (optional) True to parse the layers of all tokens, False to limit detailed parsing to hits
         extra_fields_doc: extra document metadata fields to add to the results, if needed
         extra_fields_token: extra token layers to add to the results, if needed
@@ -51,7 +51,15 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
             tokens = match
           
         for token in tokens:
-            
+            # Go through all extra attributes: such as lemma pos
+            for att in token.attrib:
+                # Check if attribute is in fields we want
+                if att in token_fields:
+                    layer[att] = token.get(att)
+                
+            # Check word, which is saved as text instead of attribute
+            if "word" in token_fields:
+                layer[word] = token.text
             
             
             
