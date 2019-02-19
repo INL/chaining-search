@@ -20,19 +20,21 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         next_pos: the next result page to be parsed (since the results might be spread among several XML response pages), 
         or 0 if there is no page left to be parsed
     '''
-    
     # TODO: should we secure against untrusted XML?
     root = ET.fromstring(text)
     records = []
     records_len = []
     n_tokens = 0
-    computed_nt = False
+    max_len = 0
     cols= []
     
-    fields_token = constants.DEFAULT_FIELDS_TOKEN + extra_fields_token
-    fields_doc = constants.DEFAULT_FIELDS_DOC + extra_fields_doc
+    fields_token = constants.DEFAULT_FIELDS_TOKEN_BL + extra_fields_token
+    fields_doc = constants.DEFAULT_FIELDS_DOC_BL + extra_fields_doc
+    doc_metadata = {}
+
+
     for entry in root.iter("hit"):
-        doc_metadata = {}
+        
         # Parse document metadata
         #if(dataView.get("type")=="application/x-clariah-fcs-simple-metadata+xml"):
         #    for keyval in dataView.findall("keyval"):
@@ -41,48 +43,61 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         #            value = keyval.get("value")
         #            doc_metadata[key] = value
 
-        left = entry.find('left')
-        match = entry.find('match')
-        right = entry.find('match')
+        left = entry.find('left').findall('w')
+        match = entry.find('match').findall('w')
+        right = entry.find('right').findall('w')
         
+        # If detailed_context on, return all layers for match+context
         if detailed_context:
             tokens = left+match+right
+        # If detailed_context off, return all layers only for match
         else:
             tokens = match
-          
+        
+        n_tokens = len(tokens)
+        if n_tokens > max_len:
+            max_len = n_tokens
+
+        layer = {}
         for token in tokens:
             # Go through all extra attributes: such as lemma pos
             for att in token.attrib:
                 # Check if attribute is in fields we want
-                if att in token_fields:
+                if att in fields_token:
                     layer[att] = token.get(att)
                 
             # Check word, which is saved as text instead of attribute
-            if "word" in token_fields:
-                layer[word] = token.text
-            
-            
-            
-            
-        data, cols = _combine_layers(hit_layer, n_tokens, doc_metadata_req=fields_doc, doc_metadata_recv=doc_metadata)
+            if "word" in fields_token:
+                layer["word"] = token.text
+        print("Layer")
+        print(layer)
+        data, cols = _combine_layers(layer, n_tokens, doc_metadata_req=fields_doc, doc_metadata_recv=doc_metadata)
+        print("Data")
+        print(data)
+        
         if detailed_context is False:
-            left_context = left.itertext()
-            right_context = right.itertext()
+            left_context = " ".join([w.text for w in left])
+            right_context = " ".join([w.text for w in right])
             kwic = [left_context] + data + [right_context]
         else:
             kwic = data
         records.append(kwic)
         records_len.append(n_tokens)
                 
+    # If detailed context off, add 
     if detailed_context is False:
         columns = ["left context"] + cols + ["right context"]
     else:
         columns = cols
     
     next_pos = 0
-    next_record_position = root.find("{http://docs.oasis-open.org/ns/search-ws/sruResponse}nextRecordPosition")
-    if (next_record_position is not None):
-        next_pos = int(next_record_position.text)
+    summary = root.find("summary")
+    has_next = summary.find("windowHasNext").text
+    # If there is a next page, compute new start position
+    if (has_next == "true"):
+        first = summary.find("windowFirstResult").text
+        number = summary.find("requestedWindowSize").text
+        next_pos = int(first) + int(number)
         
         
     # do some clean up now!
@@ -113,11 +128,10 @@ def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fiel
     records = []
     records_len = []
     n_tokens = 0
-    computed_nt = False
     cols= []
     
-    fields_token = constants.DEFAULT_FIELDS_TOKEN + extra_fields_token
-    fields_doc = constants.DEFAULT_FIELDS_DOC + extra_fields_doc
+    fields_token = constants.DEFAULT_FIELDS_TOKEN_FCS + extra_fields_token
+    fields_doc = constants.DEFAULT_FIELDS_DOC_FCS + extra_fields_doc
     for entry in root.iter("{http://clarin.eu/fcs/resource}ResourceFragment"):
         doc_metadata = {}
         for dataView in entry.findall("{http://clarin.eu/fcs/resource}DataView"):

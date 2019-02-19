@@ -9,13 +9,13 @@ import chaininglib.search.corpusQueries as corpusQueries
 class CorpusQuery:
     """ A query on a token-based corpus. """
 
-    def __init__(self, corpus, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 1, metadata_filter={}, method="fcs"):
+    def __init__(self, corpus, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 0, metadata_filter={}, method="fcs"):
         
         self._corpus = corpus
-        self._pattern = pattern        
+        self._pattern = pattern
         self._lemma = lemma
         self._word = word
-        self._pos = pos        
+        self._pos = pos
         self._detailed_context = detailed_context
         self._extra_fields_doc = extra_fields_doc
         self._extra_fields_token = extra_fields_token
@@ -139,6 +139,11 @@ class CorpusQuery:
         
         try:
             if self._method=="fcs":
+                # FCS starts counting at 1. Adjust 0 (default start position) to 1.
+                # Other start positions, which are probably given deliberately, are left as is.
+                if self._start_position == 0:
+                    self._start_position = 1
+
                 # Do request to federated content search corpora, so we get same output format for every corpus
                 url = ( "http://portal.clarin.inl.nl/fcscorpora/clariah-fcs-endpoints/sru?operation=searchRetrieve&queryType=fcs"+
                         "&maximumRecords=" + str(constants.RECORDS_PER_PAGE) +
@@ -188,4 +193,3 @@ def create_corpus(name):
     >>> df = corpus_obj.results()
     '''
     return CorpusQuery(name)
-
