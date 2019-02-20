@@ -30,18 +30,21 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
     
     fields_token = constants.DEFAULT_FIELDS_TOKEN_BL + extra_fields_token
     fields_doc = constants.DEFAULT_FIELDS_DOC_BL + extra_fields_doc
-    doc_metadata = {}
+    doc_metadata_all = defaultdict(dict)
 
+    # collect metadata for all documents
+    docInfos = root.find("docInfos")
+    for docInfo in docInfos.findall("docInfo"):
+        pid = docInfo.get("pid")
+        for field in docInfo:
+            # If we want this field, save it
+            field_name = field.tag
+            if field_name in fields_doc:
+                field_value = field.text
+                doc_metadata_all[pid][field_name] = field_value
 
+    # Traverse hits
     for entry in root.iter("hit"):
-        
-        # Parse document metadata
-        #if(dataView.get("type")=="application/x-clariah-fcs-simple-metadata+xml"):
-        #    for keyval in dataView.findall("keyval"):
-        #        key = keyval.get("key")
-        #        if key in fields_doc:
-        #            value = keyval.get("value")
-        #            doc_metadata[key] = value
 
         left = entry.find('left').findall('w')
         match = entry.find('match').findall('w')
@@ -58,26 +61,27 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         if n_tokens > max_len:
             max_len = n_tokens
 
-        layer = {}
+        layer = defaultdict(list)
         for token in tokens:
             # Go through all extra attributes: such as lemma pos
             for att in token.attrib:
                 # Check if attribute is in fields we want
                 if att in fields_token:
-                    layer[att] = token.get(att)
+                    layer[att].append(token.get(att))
                 
             # Check word, which is saved as text instead of attribute
             if "word" in fields_token:
-                layer["word"] = token.text
-        print("Layer")
-        print(layer)
+                layer["word"].append(token.text)
+        
+        # Get document metadata for this hit from storage
+        pid = entry.find("docPid").text
+        doc_metadata = doc_metadata_all[pid]
+
         data, cols = _combine_layers(layer, n_tokens, doc_metadata_req=fields_doc, doc_metadata_recv=doc_metadata)
-        print("Data")
-        print(data)
         
         if detailed_context is False:
-            left_context = " ".join([w.text for w in left])
-            right_context = " ".join([w.text for w in right])
+            left_context = " ".join([w.text if w.text is not None else "" for w in left])
+            right_context = " ".join([w.text if w.text is not None else "" for w in right])
             kwic = [left_context] + data + [right_context]
         else:
             kwic = data
