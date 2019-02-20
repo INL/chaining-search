@@ -1,5 +1,118 @@
 from nltk.tag.perceptron import PerceptronTagger
+from chaininglib.utils.dfops import property_freq, df_filter
 import pandas as pd
+
+
+# beware: just like chaininglib.utils.dfops, this file contains function operating on DataFrames.
+# However the functions in this file aim to manipulate DataFrames with corpus data, 
+# whereas the functions in dfops are more general
+
+def get_frequency_list(df_corpus):
+    '''
+    This function computes the raw frequency of lemmata in a DataFrame containing corpus data
+    Args:
+        df_corpus: a Pandas DataFrame with corpus data (it must contain at least one 'lemma' column)
+    Returns:
+        a Pandas DataFrame with 'lemmata' as index, 'token count' a number of occurences per lemma, 
+        and 'rank' as ordinal position in the list of lemmata, based on the 'token count'.
+    '''
+    # get a list of the columns named 'lemma...' 
+    all_col_names = list(df_corpus.columns.values)
+    lemma_col_names = [x for x in set(all_col_names) if str(x).startswith("lemma")]
+    
+    if len(lemma_col_names) == 0:
+        raise ValueError("function get_frequency_list() was called with a DataFrame which doesn't contain any 'lemma' column. If needed, rename the relevant column of your DataFrame into 'lemma'.")
+    
+    # instantiate a DataFrame with one single column 'lemmata',
+    # in which we will gather all single lemmata occurences
+    df_lemmata_list = pd.DataFrame()
+    
+    # loop through the list of lemma-column:
+    # For each of them, gather all unique lemmata and add those to the df_lemmata_list DataFrame
+    for col_name in lemma_col_names:
+        # rename the column in question to 'lemmata', so as to be able to merge this DataFrame with the full list of lemmata
+        sub_df_corpus = df_corpus[col_name]
+        df_lemmata_list = pd.concat( [df_lemmata_list, sub_df_corpus] )
+        
+    df_lemmata_list.columns=["lemmata"]
+        
+    # Use the property_freq to compute a frequency list
+    df_frequency_list = property_freq(df_lemmata_list, "lemmata")    
+    # set the lemmata column to be the index
+    df_frequency_list.set_index("lemmata")
+    
+    # final step: compute ranks
+    # this is needed to be able to compare different frequency lists 
+    # with each other (which we could achieve by computing a rank diff)
+    df_frequency_list['rank'] = df_frequency_list['token count'].rank(ascending = False).astype(int)
+    
+    return df_frequency_list
+
+
+
+def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wordformColumnName='word'):
+    
+    print("extracting lexicon...")
+    
+    # Instantiate a DataFrame 
+    # in which we will gather the paradigms
+    df_lexicon = pd.DataFrame()
+    
+    # The algorithm expects a list of DataFrames by default, so make sure we have just that
+    if isinstance(dfs_corpus, pd.DataFrame):
+        dfs_corpus = [dfs_corpus]
+        
+    for df_corpus in dfs_corpus:
+    
+        # Exract the basic layers (lemma, pos, wordform) contained in df_corpus
+        column_names = list(df_corpus.columns.values)
+        
+        for n, val in enumerate(column_names):
+            # remove the numbers at the end of the layers names (lemma 1, lemma 2, ..., pos 1, pos 2, ...)
+            # so we end up with clean layers name only
+            column_names[n] = val.split(' ')[0] 
+
+
+        # To be able to extract a lexicon, we need at least: lemma, pos, wordform
+        # (only lemma and wordform is dangerous, since there can be homonyms with different grammatical categories,
+        #  so when grouping them, we would end up with mixed up paradigms)
+
+        
+        if (lemmaColumnName not in set(column_names) or posColumnName not in set(column_names) or wordformColumnName not in set(column_names)):
+            raise ValueError("extract_lexicon() expects the Pandas DataFrame input to contain at least these columns: "+lemmaColumnName+", "+posColumnName+" and "+wordformColumnName)
+
+
+
+        # loop through the layers, extract those as temporary DataFrame, 
+        # and concat each temporary DataFrame with the main DataFrame to get a full list
+        for i in range(0, len(set(column_names)), 1):
+            current_lemma = lemmaColumnName+' '+str(i)
+            current_pos = posColumnName+' '+str(i)
+            current_wordform = wordformColumnName+' '+str(i)
+            sub_df_corpus = df_corpus.loc[ : , [current_lemma, current_pos, current_wordform] ]
+            sub_df_corpus.columns = [lemmaColumnName, posColumnName, wordformColumnName]
+
+            df_lexicon = pd.concat( [df_lexicon, sub_df_corpus] )
+
+    # set column names
+    df_lexicon.columns = [lemmaColumnName, posColumnName, wordformColumnName]
+    
+    # get rid on illformed lemmata and set it all lowercase
+    
+    df_lexicon = df_lexicon[ df_lexicon[lemmaColumnName].apply(lambda x: type(x)==str) ]    
+    df_lexicon[lemmaColumnName] = df_lexicon[lemmaColumnName].apply(lambda x: x.lower())
+    
+    df_lexicon = df_lexicon[ df_lexicon[wordformColumnName].apply(lambda x: type(x)==str) ]
+    df_lexicon[wordformColumnName] = df_lexicon[wordformColumnName].apply(lambda x: x.lower()) 
+    
+    df_lexicon = df_lexicon[ df_lexicon[lemmaColumnName].str.contains("^[a-z]+$" ) ]
+    
+    # make sure each lemma-pos-wordform combination is unique
+    df_lexicon = df_lexicon.drop_duplicates()
+    df_lexicon = df_lexicon.sort_values(by=[lemmaColumnName, posColumnName])
+    df_lexicon = df_lexicon.reset_index(drop=True)
+    return df_lexicon
+
 
 
 def get_tagger(dfs_corpus, word_key="word", pos_key="universal_dependency"):
