@@ -166,8 +166,8 @@ def get_rank_diff(df1, df2):
     # computed with a lemmata list which might be larger than the lemmata list common
     # to both dataframes
     
-    limited_df1['rank'] = limited_df1['raw_freq'].rank(ascending = False).astype(int)
-    limited_df2['rank'] = limited_df2['raw_freq'].rank(ascending = False).astype(int)
+    limited_df1['rank'] = limited_df1['token count'].rank(ascending = False).astype(int)
+    limited_df2['rank'] = limited_df2['token count'].rank(ascending = False).astype(int)
     
     # Instantiate a dataframe for storing lemmata and rank diffs
     df_rankdiffs = pd.DataFrame(index=common_lemmata_list, columns=['rank_1', 'rank_2', 'rank_diff'])
