@@ -1,6 +1,13 @@
 import pandas as pd
 
 
+# beware: just like the files in chaininglib.process, this file contains function operating on DataFrames.
+# However the functions in this file are general in the sense that they don't specifically aim at manipulating
+# corpus or lexicon data.  
+# On the contrary, the functions in chaininglib.process do aim to manipulate corpus or lexicon data, so those
+# function don't belong in this general section.
+
+
 def check_valid_df(function_name, obj):
     '''
     This function is called by others to check if input is a DataFrame, when it is expected!
@@ -46,48 +53,6 @@ def property_freq(df, column_name):
     df["perc"] = df["token count"] / total.iloc[0]
     return df
 
-
-
-def get_frequency_list(df_corpus):
-    '''
-    This function computes the raw frequency of lemmata in a DataFrame containing corpus data
-    Args:
-        df_corpus: a Pandas DataFrame with corpus data (it must contain at least one 'lemma' column)
-    Returns:
-        a Pandas DataFrame with 'lemmata' as index, 'token count' a number of occurences per lemma, 
-        and 'rank' as ordinal position in the list of lemmata, based on the 'token count'.
-    '''
-    # get a list of the columns named 'lemma...' 
-    all_col_names = list(df_corpus.columns.values)
-    lemma_col_names = [x for x in set(all_col_names) if str(x).startswith("lemma")]
-    
-    if len(lemma_col_names) == 0:
-        raise ValueError("function get_frequency_list() was called with a DataFrame which doesn't contain any 'lemma' column. If needed, rename the relevant column of your DataFrame into 'lemma'.")
-    
-    # instantiate a DataFrame with one single column 'lemmata',
-    # in which we will gather all single lemmata occurences
-    df_lemmata_list = pd.DataFrame()
-    
-    # loop through the list of lemma-column:
-    # For each of them, gather all unique lemmata and add those to the df_lemmata_list DataFrame
-    for col_name in lemma_col_names:
-        # rename the column in question to 'lemmata', so as to be able to merge this DataFrame with the full list of lemmata
-        sub_df_corpus = df_corpus[col_name]
-        df_lemmata_list = pd.concat( [df_lemmata_list, sub_df_corpus] )
-        
-    df_lemmata_list.columns=["lemmata"]
-        
-    # Use the property_freq to compute a frequency list
-    df_frequency_list = property_freq(df_lemmata_list, "lemmata")    
-    # set the lemmata column to be the index
-    df_frequency_list.set_index("lemmata")
-    
-    # final step: compute ranks
-    # this is needed to be able to compare different frequency lists 
-    # with each other (which we could achieve by computing a rank diff)
-    df_frequency_list['rank'] = df_frequency_list['token count'].rank(ascending = False).astype(int)
-    
-    return df_frequency_list
 
 
 
@@ -201,8 +166,8 @@ def get_rank_diff(df1, df2):
     # computed with a lemmata list which might be larger than the lemmata list common
     # to both dataframes
     
-    limited_df1['rank'] = limited_df1['raw_freq'].rank(ascending = False).astype(int)
-    limited_df2['rank'] = limited_df2['raw_freq'].rank(ascending = False).astype(int)
+    limited_df1['rank'] = limited_df1['token count'].rank(ascending = False).astype(int)
+    limited_df2['rank'] = limited_df2['token count'].rank(ascending = False).astype(int)
     
     # Instantiate a dataframe for storing lemmata and rank diffs
     df_rankdiffs = pd.DataFrame(index=common_lemmata_list, columns=['rank_1', 'rank_2', 'rank_diff'])

@@ -198,3 +198,8 @@ def create_corpus(name):
     '''
     return CorpusQuery(name)
 
+def get_available_corpora():
+    '''
+    This function returns the list of the available lexica
+    '''
+    return list(constants.AVAILABLE_CORPORA.keys())
