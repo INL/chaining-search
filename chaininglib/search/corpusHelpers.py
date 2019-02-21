@@ -5,7 +5,27 @@ import xml.etree.ElementTree as ET
 import urllib
 import chaininglib.constants as constants
 
-####### TODO: unfinished
+
+def _create_lucene_metadata_filter(filter_dict):
+    filter_string = ""
+    for i, feature_name in enumerate(filter_dict):
+        filter_string += feature_name + ":"
+        feature_value = filter_dict[feature_name]
+        # If value is string: add exact match condition of form 'feature_name:feature_value'
+        if isinstance(feature_value, str):
+            filter_string += feature_value
+        elif isinstance(feature_value, list) and len(feature_value)==2:
+            # Numerical interval, eg. years
+            interval = "[%s TO %s]" % (str(feature_value[0]), str(feature_value[1]))
+            filter_string += interval
+        else:
+            print("Unrecognized value type, skipping: " + str(feature_value))
+            continue
+        if i < len(filter_dict) -1:
+            filter_string += " "
+    return filter_string
+
+
 def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):
     '''
     This function converts the Blacklab XML output of a lexicon or corpus search into a Pandas DataFrame for further processing
@@ -77,22 +97,18 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         pid = entry.find("docPid").text
         doc_metadata = doc_metadata_all[pid]
 
-        data, cols = _combine_layers(layer, n_tokens, doc_metadata_req=fields_doc, doc_metadata_recv=doc_metadata)
-        
         if detailed_context is False:
             left_context = " ".join([w.text if w.text is not None else "" for w in left])
             right_context = " ".join([w.text if w.text is not None else "" for w in right])
-            kwic = [left_context] + data + [right_context]
         else:
-            kwic = data
-        records.append(kwic)
+            left_context = None
+            right_context = None
+
+        data, cols = _combine_layers(layer, n_tokens, fields_doc, doc_metadata, detailed_context, left_context, right_context)
+        
+        records.append(data)
         records_len.append(n_tokens)
-                
-    # If detailed context off, add 
-    if detailed_context is False:
-        columns = ["left context"] + cols + ["right context"]
-    else:
-        columns = cols
+
     
     next_pos = 0
     summary = root.find("summary")
@@ -109,7 +125,7 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         if (records_len[i]<max_len):
             del records[i]
         
-    return pd.DataFrame(records, columns = columns), next_pos
+    return pd.DataFrame(records, columns = cols), next_pos
 
 
 def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):
@@ -133,6 +149,8 @@ def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fiel
     records_len = []
     n_tokens = 0
     cols= []
+    left_context = None
+    right_context = None
     
     fields_token = constants.DEFAULT_FIELDS_TOKEN_FCS + extra_fields_token
     fields_doc = constants.DEFAULT_FIELDS_DOC_FCS + extra_fields_doc
@@ -185,18 +203,15 @@ def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fiel
                         n_tokens = len(hit_layer[layer_id])
                         if max_len<n_tokens:
                             max_len = n_tokens
-                data, cols = _combine_layers(hit_layer, n_tokens, doc_metadata_req=fields_doc, doc_metadata_recv=doc_metadata)
-                if detailed_context is False:
-                    kwic = [left_context] + data + [right_context]
-                else:
-                    kwic = data
-                records.append(kwic)
+                # We assume that application/x-clarin-fcs-hits+xml (where left and right context are initialized) precedes x-clarin-fcs-adv+xml,
+                # otherwise code won't work properly because left and right context are not initialized
+                data, cols = _combine_layers(hit_layer, n_tokens, fields_doc, doc_metadata, detailed_context, left_context, right_context)
+                # Reset left and right context. So if left and right context are not initialized (see above), our program can throw an error,
+                # instead of using old contexts
+                left_context = None
+                right_context = None
+                records.append(data)
                 records_len.append(n_tokens)
-                
-    if detailed_context is False:
-        columns = ["left context"] + cols + ["right context"]
-    else:
-        columns = cols
     
     next_pos = 0
     next_record_position = root.find("{http://docs.oasis-open.org/ns/search-ws/sruResponse}nextRecordPosition")
@@ -209,7 +224,7 @@ def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fiel
         if (records_len[i]<max_len):
             del records[i]
         
-    return pd.DataFrame(records, columns = columns), next_pos
+    return pd.DataFrame(records, columns = cols), next_pos
 
 def _show_error_if_any(text):
     '''
@@ -231,7 +246,7 @@ def _show_error_if_any(text):
         print("; ".join(msgs))
 
         
-def _combine_layers(hit_layer, n_tokens, doc_metadata_req, doc_metadata_recv):
+def _combine_layers(hit_layer, n_tokens, doc_metadata_req, doc_metadata_recv, detailed_context=False, left_context=None, right_context=None):
     '''
     Combine the layers, in alphabetical order of the layer names, to a flat list, with separate column per layer per word in hit, and document metadata added as last columns
     
@@ -243,6 +258,9 @@ def _combine_layers(hit_layer, n_tokens, doc_metadata_req, doc_metadata_recv):
         doc_metadata_req: list of document metadata fields which have been requested
         doc_metadata_recv: dictionary with document metadata that is actually present in hits:
                         can contain less fields than doc_fields_requested
+        detailed_context (optional): True to parse the layers of all tokens, False to limit detailed parsing to hits
+        left_context (optional): left context string, needed when detailed_context=False
+        right_context (optional): right context string, needed when detailed_context=False
     Returns:
         data: flat list with combined token layers, sorted alphabetically, and document metadata
     '''
@@ -254,14 +272,22 @@ def _combine_layers(hit_layer, n_tokens, doc_metadata_req, doc_metadata_recv):
     # Flatten list of document metadata fields
     # Use all requested fields, some of which may not be available in this hit
     doc_flat = [doc_metadata_recv[field] if field in doc_metadata_recv else "" for field in doc_metadata_req]
-    # Combine token and document data
-    data = layers_token_flat + doc_flat
     
-    ### Columns
+    
     # Create list of columns, in same order
     tokens_columns = [layer_id+ " "+str(n) for n in range(n_tokens) for layer_id in layers_keys]
+    if detailed_context is False:
+        if left_context is None or right_context is None:
+            raise ValueError("left_context or right_context is None: not allowed when detailed_context==False!")
+        tokens_columns = ["left context"] + tokens_columns + ["right context"]
+        layers_token_flat = [left_context] + layers_token_flat + [right_context]
+
+    # Combine token and document data
+    data = layers_token_flat + doc_flat
     # Add all requested document metadata fields as columns
     columns = tokens_columns + doc_metadata_req
+
+
     return data, columns
 
 

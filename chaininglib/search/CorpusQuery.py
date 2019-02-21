@@ -3,7 +3,7 @@ import urllib
 import requests
 import chaininglib.constants as constants
 import chaininglib.ui.status as status
-import chaininglib.search.corpusParse as corpusParse
+import chaininglib.search.corpusHelpers as corpusHelpers
 import chaininglib.search.corpusQueries as corpusQueries
 
 class CorpusQuery:
@@ -84,7 +84,7 @@ class CorpusQuery:
         '''
         return self._copyWith('_start_position', start_position)
 
-    def metadata(self, metadata_filter):
+    def metadata_filter(self, metadata_filter):
         '''
         Set metadata fields to filter results set on, after query has been performed.
         '''
@@ -143,6 +143,9 @@ class CorpusQuery:
                 # Other start positions, which are probably given deliberately, are left as is.
                 if self._start_position == 0:
                     self._start_position = 1
+                
+                # FCS does filtering on query results, so we have to request the filter fields in our query
+                self._extra_fields_doc = list(set(self._extra_fields_doc + list(self._metadata_filter.keys())))
 
                 # Do request to federated content search corpora, so we get same output format for every corpus
                 url = ( "http://portal.clarin.inl.nl/fcscorpora/clariah-fcs-endpoints/sru?operation=searchRetrieve&queryType=fcs"+
@@ -153,21 +156,22 @@ class CorpusQuery:
             elif self._method=="blacklab":
                 if constants.AVAILABLE_CORPORA[self._corpus] == "":
                     raise ValueError("Blacklab access not available for this corpus.")
+                # Blacklab can filter metadata on server
+                lucene_filter = corpusHelpers._create_lucene_metadata_filter(self._metadata_filter)
                 url = ( constants.AVAILABLE_CORPORA[self._corpus]+ "/hits?"
                         "&number=" + str(constants.RECORDS_PER_PAGE) +
                         "&first=" + str(self._start_position) +
-                        "&patt=" + urllib.parse.quote(self._pattern) )
+                        "&patt=" + urllib.parse.quote(self._pattern) +
+                        "&filter=" + lucene_filter)
             else:
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
-            #print(url)
             response = requests.get(url)
             response_text = response.text
             if self._method=="fcs":
-                df, next_page = corpusParse._parse_xml_fcs(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
+                df, next_page = corpusHelpers._parse_xml_fcs(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
             elif self._method=="blacklab":
-                df, next_page = corpusParse._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
+                df, next_page = corpusHelpers._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
             # If there are next pages, call search_corpus recursively
-            #print(next_page)
             if next_page > 0:
                 status.remove_wait_indicator()
                 self._start_position = next_page
@@ -177,7 +181,7 @@ class CorpusQuery:
             status.remove_wait_indicator()
 
             # show message out of xml, if some error has occured (prevents empty output)
-            corpusParse._show_error_if_any(response_text)
+            corpusHelpers._show_error_if_any(response_text)
 
             return df
         except Exception as e:
