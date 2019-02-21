@@ -10,10 +10,11 @@ import chaininglib.search.lexiconQueries as lexiconQueries
 class LexiconQuery:
     """ A query on a lexicon. """
 
-    def __init__(self, lexicon, lemma = None, pos = None):
+    def __init__(self, lexicon):
         self._lexicon = lexicon
-        self._lemma = lemma
-        self._pos = pos
+        self._lemma = None
+        self._pos = None
+        self._response = None
         
 
     def __str__(self):
@@ -36,13 +37,15 @@ class LexiconQuery:
         Set a part-of-speech as part of a lexicon search pattern
         '''
         return self._copyWith('_pos', p)
+    
+    
 
-    def results(self):
+    def search(self):
         '''
-        Request results matching a lexicon search query
+        Perform a lexicon search 
         
         >>> # build a lexicon search query
-        >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma)
+        >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma).search()
         >>> # get the results
         >>> df = lexicon_obj.results()
         '''
@@ -68,26 +71,55 @@ class LexiconQuery:
             response_json = json.loads(response.text)
             records_json = response_json["results"]["bindings"]
             records_string = json.dumps(records_json)    
-            df = pd.read_json(records_string, orient="records")
-
-            # make sure cells containing NULL are added too, otherwise we'll end up with ill-formed data
-            # CAUSES MALFUNCTION: df = df.fillna('')
-            df = df.applymap(lambda x: '' if pd.isnull(x) else x["value"])         
-
+            
             # remove wait indicator, 
             status.remove_wait_indicator()
-
-            return df
+            
+            # object enriched with response
+            return self._copyWith('_response', records_string)
+           
         except Exception as e:
             status.remove_wait_indicator()
             raise ValueError("An error occured when searching lexicon " + self._lexicon + ": "+ str(e))
+    
+    
 
+    # OUTPUT    
+    
+    def json(self):
+        '''
+        Get the JSON response (unparsed) of a lexicon search 
+        '''
+        return self._response
+    
+    
+    def results(self):
+        '''
+        Get the results (as Pandas DataFrame) of a lexicon search 
+        
+        >>> # build a lexicon search query
+        >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma).search()
+        >>> # get the results
+        >>> df = lexicon_obj.results()
+        '''
+        
+        records_string = self.json()
+        
+        df = pd.read_json(records_string, orient="records")
+
+        # make sure cells containing NULL are added too, otherwise we'll end up with ill-formed data
+        # CAUSES MALFUNCTION: df = df.fillna('')
+        df = df.applymap(lambda x: '' if pd.isnull(x) else x["value"])  
+
+        return df
+    
+    
 
 def create_lexicon(name):
     '''
     API constructor
     
-    >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma)
+    >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma).search()
     >>> df = lexicon_obj.results()
     '''
     return LexiconQuery(name)
