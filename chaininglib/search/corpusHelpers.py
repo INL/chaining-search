@@ -4,6 +4,7 @@ from collections import defaultdict
 import xml.etree.ElementTree as ET
 import urllib
 import chaininglib.constants as constants
+import chaininglib.utils.dfops as dfops
 
 
 def _create_lucene_metadata_filter(filter_dict):
@@ -13,17 +14,43 @@ def _create_lucene_metadata_filter(filter_dict):
         feature_value = filter_dict[feature_name]
         # If value is string: add exact match condition of form 'feature_name:feature_value'
         if isinstance(feature_value, str):
-            filter_string += feature_value
+            filter_string += ('"%s"' % feature_value)
         elif isinstance(feature_value, list) and len(feature_value)==2:
             # Numerical interval, eg. years
-            interval = "[%s TO %s]" % (str(feature_value[0]), str(feature_value[1]))
+            # Replace None by *
+            feature_value = [f if f is not None else "*" for f in feature_value]
+            interval = '[%s TO %s]' % (str(feature_value[0]), str(feature_value[1]))
             filter_string += interval
         else:
             print("Unrecognized value type, skipping: " + str(feature_value))
             continue
         if i < len(filter_dict) -1:
-            filter_string += " "
+            filter_string += " AND "
+    print(filter_string)
     return filter_string
+
+# TODO: Should we use functions from df_filter here, and change functionality of df_filter accordingly?
+def _create_pandas_metadata_filter(df, filter_dict):
+    i = 0
+    for feature_name in filter_dict:
+        feature_value = filter_dict[feature_name]
+        if isinstance(feature_value, str):
+            # If value is string: add exact match condition
+            condition = dfops.df_filter(df[feature_name], feature_value, method="match")
+            i += 1
+        elif isinstance(feature_value, list) and len(feature_value)==2:
+            # Numerical interval, eg. years
+            # User can give both years, or only one: [1600,1700], [1600,None], [None,1700]
+            condition = dfops.df_filter(df[feature_name], feature_value, method="interval")   
+            i +=1  
+        else:
+            print("Unrecognized value type, skipping: " + str(feature_value))
+            continue
+        if i==1:
+            total_condition = condition
+        else:
+            total_condition = total_condition & condition
+    return total_condition
 
 
 def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):
@@ -65,7 +92,6 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
 
     # Traverse hits
     for entry in root.iter("hit"):
-
         left = entry.find('left').findall('w')
         match = entry.find('match').findall('w')
         right = entry.find('right').findall('w')

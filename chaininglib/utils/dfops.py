@@ -56,15 +56,15 @@ def property_freq(df, column_name):
 
 
 
-def df_filter(df_column, regex_or_set, method='contains'):    
+def df_filter(df_column, query, method='contains'):    
     '''
     Helper function to build some condition to filter a Pandas DataFrame, 
     given a column and some value(s) to filter this column with
     
     Args:
         df_column: a Pandas DataFrame column to filter on
-        regex_or_set: a regular expression or a list 
-        method: "contains" or "isin"
+        query: string, set or interval list to filter on
+        method: "contains", "match", isin" or "interval"
     Returns:
         a condition
         
@@ -73,13 +73,37 @@ def df_filter(df_column, regex_or_set, method='contains'):
     '''
     
     if method=="contains":
-        filter_condition = df_column.str.contains(regex_or_set)    
+        if not isinstance(query,str):
+            raise ValueError("df_filter 'contains' method needs string as query.")
+        condition = df_column.str.contains(query)    
+    elif method=="match":
+        if not isinstance(query,str):
+            raise ValueError("df_filter 'match' method needs string as query.")
+        condition = df_column.str.match(query)  
     elif method=="isin":
-        filter_condition = df_column.isin(regex_or_set)
+        if not isinstance(query,set):
+            raise ValueError("df_filter 'isin' method needs set as query.")
+        condition = df_column.isin(query)
+    elif method=="interval":
+        if not (isinstance(query, list) and len(query)==2):
+            raise ValueError("df_filter 'interval' method needs a list consisting of a lower and upper boundary as query.")
+        val_from = query[0]
+        val_to = query[1]
+        if val_from is None and val_to is None:
+            raise ValueError("Lower boundary or upper boundary of interval should be given.")
+        col_numeric = df_column.astype('int32')
+        if val_from:
+            condition_from = (col_numeric >= int(val_from))
+            condition = condition_from
+        if val_to:
+            condition_to = (col_numeric <= int(val_to))
+            condition = condition_to
+        if val_from and val_to:
+            condition = condition_from & condition_to
     else:
-        raise ValueError("Choose one of 'contains' or 'isin' as method for df_filter.")
+        raise ValueError("Choose one of 'contains', 'match', 'isin' or 'interval' as method for df_filter.")
         
-    return filter_condition
+    return condition
 
 
 def join_df(df_arr, join_type=None):    

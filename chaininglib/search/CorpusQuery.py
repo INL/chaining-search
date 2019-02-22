@@ -152,7 +152,7 @@ class CorpusQuery:
                         "&maximumRecords=" + str(constants.RECORDS_PER_PAGE) +
                         "&startRecord=" + str(self._start_position) +
                         "&x-fcs-context=" + self._corpus + 
-                        "&query=" + urllib.parse.quote(self._pattern) )
+                        "&query=" + urllib.parse.quote_plus(self._pattern) )
             elif self._method=="blacklab":
                 if constants.AVAILABLE_CORPORA[self._corpus] == "":
                     raise ValueError("Blacklab access not available for this corpus.")
@@ -161,8 +161,9 @@ class CorpusQuery:
                 url = ( constants.AVAILABLE_CORPORA[self._corpus]+ "/hits?"
                         "&number=" + str(constants.RECORDS_PER_PAGE) +
                         "&first=" + str(self._start_position) +
-                        "&patt=" + urllib.parse.quote(self._pattern) +
-                        "&filter=" + lucene_filter)
+                        "&patt=" + urllib.parse.quote_plus(self._pattern) +
+                        "&filter=" + urllib.parse.quote_plus(lucene_filter) )
+                print(url)
             else:
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
             response = requests.get(url)
@@ -182,6 +183,12 @@ class CorpusQuery:
 
             # show message out of xml, if some error has occured (prevents empty output)
             corpusHelpers._show_error_if_any(response_text)
+
+            # Filter results on metadata (performeed after query for FCS)
+            if self._method=="fcs":
+                if self._metadata_filter:
+                    filters = corpusHelpers._create_pandas_metadata_filter(df, self._metadata_filter)
+                    df = df[filters]
 
             return df
         except Exception as e:
