@@ -22,6 +22,8 @@ class CorpusQuery:
         self._start_position = start_position
         self._metadata_filter = metadata_filter
         self._method = method
+        self._response = []
+        self._df_kwic = None
 
     def __str__(self):
         return 'CorpusQuery({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})'.format(
@@ -95,8 +97,8 @@ class CorpusQuery:
         Set method to make request: fcs (Federated Content Search) or blacklab
         '''
         return self._copyWith('_method', method)
-
-    def results(self):
+    
+    def search(self):
         '''
         Request results matching a corpus search query
         
@@ -105,6 +107,7 @@ class CorpusQuery:
         >>> # get the results
         >>> df = corpus_obj.results()
         '''
+
         if self._corpus not in constants.AVAILABLE_CORPORA:
             raise ValueError("Unknown corpus: " + self._corpus)
             
@@ -130,7 +133,7 @@ class CorpusQuery:
             for one_pattern in self._pattern:
                 
                 cq = CorpusQuery(self._corpus, pattern = one_pattern, lemma = self._lemma, word=self._word, pos=self._pos, detailed_context = self._detailed_context, extra_fields_doc = self._extra_fields_doc, extra_fields_token = self._extra_fields_token, start_position = self._start_position, metadata_filter=self._metadata_filter, method=self._method)
-                result_dict[one_pattern] = cq.results()
+                result_dict[one_pattern] = cq.search().kwic()
             return result_dict
             
             
@@ -168,6 +171,7 @@ class CorpusQuery:
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
             response = requests.get(url)
             response_text = response.text
+            self._response.append(response_text)
             if self._method=="fcs":
                 df, next_page = corpusHelpers._parse_xml_fcs(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
             elif self._method=="blacklab":
@@ -176,7 +180,7 @@ class CorpusQuery:
             if next_page > 0:
                 status.remove_wait_indicator()
                 self._start_position = next_page
-                df_more = self.results()
+                df_more = self.search().kwic()
                 df = df.append(df_more, ignore_index=True)
 
             status.remove_wait_indicator()
@@ -189,11 +193,30 @@ class CorpusQuery:
                 if self._metadata_filter:
                     filters = corpusHelpers._create_pandas_metadata_filter(df, self._metadata_filter)
                     df = df[filters]
+            
+            # Save dataframe in object, so it can be retrieved with .kwic()
+            return self._copyWith('_df_kwic', df)
 
-            return df
         except Exception as e:
             status.remove_wait_indicator()
             raise ValueError("An error occured when searching corpus " + self._corpus + ": "+ str(e))
+    
+    # OUTPUT
+
+    def xml(self):
+        '''
+        Get the XML response (unparsed) of a treebank search 
+        '''
+        if self._method == "fcs" and self._metadata_filter:
+            raise ValueError("Retrieving xml not possible for method FCS in combination with metadata filters. Remove metadata filter and try again.")
+        return "\n".join(self._response)
+    
+    def kwic(self):
+        '''
+        Get the Pandas DataFrame with one keyword in context (KWIC) per row
+        '''
+        return self._df_kwic
+
 
 
 def create_corpus(name):
