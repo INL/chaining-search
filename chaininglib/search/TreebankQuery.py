@@ -14,6 +14,7 @@ class TreebankQuery:
         self._treebank = treebank
         self._pattern = None
         self._response = None
+        self._search_performed = False
 
     def __str__(self):
         return 'TreebankQuery({0}, {1}, {2})'.format(
@@ -40,7 +41,6 @@ class TreebankQuery:
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
 
         '''
-        
         try:
             # show wait indicator, so the user knows what's happening
             status.show_wait_indicator('Searching treebanks')
@@ -58,6 +58,8 @@ class TreebankQuery:
             # remove wait indicator, 
             status.remove_wait_indicator()            
             
+            self._search_performed = True
+
             # object enriched with response
             return self._copyWith('_response', response)
         
@@ -73,19 +75,25 @@ class TreebankQuery:
         '''
         Get the XML response (unparsed) of a treebank search 
         '''
+        if not self._search_performed:
+            raise ValueError("First perform search() on this object!")
+
         return self._response
             
 
-    def results(self):
+    def kwic(self):
         '''
         Get the results (as Pandas DataFrame) of a treebank search 
         
         >>> # build a corpus search query
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
-        >>> # get the results
-        >>> df = treebank_obj.results()
+        >>> # get the results as table of kwic's
+        >>> df = treebank_obj.kwic()
         '''
         
+        if not self._search_performed:
+            raise ValueError("First perform search() on this object!")
+
         # Instantiate a DataFrame, in which we will gather all the trees
         df_treebank = pd.DataFrame()
         
@@ -125,6 +133,9 @@ class TreebankQuery:
         >>> df = treebank_obj.trees()
         '''
         
+        if not self._search_performed:
+            raise ValueError("First perform search() on this object!")
+
         trees = _parse_treebank_xml(self._response)
         
         return trees
@@ -136,6 +147,6 @@ def create_treebank(name=None):
     API constructor
     
     >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
-    >>> df = treebank_obj.results()
+    >>> df = treebank_obj.kwic()
     '''
     return TreebankQuery(name)

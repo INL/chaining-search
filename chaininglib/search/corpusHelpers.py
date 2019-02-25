@@ -26,7 +26,6 @@ def _create_lucene_metadata_filter(filter_dict):
             continue
         if i < len(filter_dict) -1:
             filter_string += " AND "
-    print(filter_string)
     return filter_string
 
 # TODO: Should we use functions from df_filter here, and change functionality of df_filter accordingly?
@@ -200,7 +199,6 @@ def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fiel
                 left_context = result.text if result.text is not None else ''
                 hits = list(result)
                 if len(hits)==0:
-                    print([w for w in result.itertext()])
                     print("no hit in kwic, skip")
                     continue
                 last_hit = hits[-1]

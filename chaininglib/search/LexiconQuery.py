@@ -15,6 +15,7 @@ class LexiconQuery:
         self._lemma = None
         self._pos = None
         self._response = None
+        self._search_performed = False
         
 
     def __str__(self):
@@ -46,8 +47,8 @@ class LexiconQuery:
         
         >>> # build a lexicon search query
         >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma).search()
-        >>> # get the results
-        >>> df = lexicon_obj.results()
+        >>> # get the results as table of kwic's
+        >>> df = lexicon_obj.kwic()
         '''
         if self._lexicon not in constants.AVAILABLE_LEXICA:
             raise ValueError("Unknown lexicon: " + self._lexicon)
@@ -75,6 +76,8 @@ class LexiconQuery:
             # remove wait indicator, 
             status.remove_wait_indicator()
             
+            self._search_performed = True
+
             # object enriched with response
             return self._copyWith('_response', records_string)
            
@@ -90,19 +93,25 @@ class LexiconQuery:
         '''
         Get the JSON response (unparsed) of a lexicon search 
         '''
+        if not self._search_performed:
+            raise ValueError("First perform search() on this object!")
+
         return self._response
     
     
-    def results(self):
+    def kwic(self):
         '''
         Get the results (as Pandas DataFrame) of a lexicon search 
         
         >>> # build a lexicon search query
         >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma).search()
-        >>> # get the results
-        >>> df = lexicon_obj.results()
+        >>> # get the results as table of kwic's
+        >>> df = lexicon_obj.kwic()
         '''
         
+        if not self._search_performed:
+            raise ValueError("First perform search() on this object!")
+
         records_string = self.json()
         
         df = pd.read_json(records_string, orient="records")
@@ -120,7 +129,7 @@ def create_lexicon(name):
     API constructor
     
     >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma).search()
-    >>> df = lexicon_obj.results()
+    >>> df = lexicon_obj.kwic()
     '''
     return LexiconQuery(name)
 

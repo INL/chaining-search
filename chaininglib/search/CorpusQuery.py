@@ -5,6 +5,7 @@ import chaininglib.constants as constants
 import chaininglib.ui.status as status
 import chaininglib.search.corpusHelpers as corpusHelpers
 import chaininglib.search.corpusQueries as corpusQueries
+import pandas as pd
 
 class CorpusQuery:
     """ A query on a token-based corpus. """
@@ -23,7 +24,8 @@ class CorpusQuery:
         self._metadata_filter = metadata_filter
         self._method = method
         self._response = []
-        self._df_kwic = None
+        self._df_kwic = pd.DataFrame()
+        self._search_performed = False
 
     def __str__(self):
         return 'CorpusQuery({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})'.format(
@@ -126,26 +128,28 @@ class CorpusQuery:
         if self._pattern is None:
             self._pattern = corpusQueries.corpus_query(self._lemma, self._word, self._pos)
         
+        # FCS starts counting at 1. Adjust 0 (default start position) to 1.
+        # Other start positions, which are probably given deliberately, are left as is.
+        if self._method=="fcs" and self._start_position == 0:
+            self._start_position = 1
+
+        # show wait indicator
+        status.remove_wait_indicator()
+        status.show_wait_indicator('Searching '+self._corpus+ ' at page '+str(self._start_position))  
          
         # in case we have multiple patterns, get results for each of them and return those in a list
         if type(self._pattern) is list:
-            result_dict = {}
-            for one_pattern in self._pattern:
-                
-                cq = CorpusQuery(self._corpus, pattern = one_pattern, lemma = self._lemma, word=self._word, pos=self._pos, detailed_context = self._detailed_context, extra_fields_doc = self._extra_fields_doc, extra_fields_token = self._extra_fields_token, start_position = self._start_position, metadata_filter=self._metadata_filter, method=self._method)
-                result_dict[one_pattern] = cq.search().kwic()
-            return result_dict
+            patterns = copy.copy(self._pattern)
+            for one_pattern in patterns:
+                # Run search method for every pattern
+                # Results will get appended
+                self._pattern = one_pattern
+                self = self.search()
             
-            
-        # show wait indicator
-        status.show_wait_indicator('Searching '+self._corpus+ ' at page '+str(self._start_position))   
+             
         
         try:
             if self._method=="fcs":
-                # FCS starts counting at 1. Adjust 0 (default start position) to 1.
-                # Other start positions, which are probably given deliberately, are left as is.
-                if self._start_position == 0:
-                    self._start_position = 1
                 
                 # FCS does filtering on query results, so we have to request the filter fields in our query
                 self._extra_fields_doc = list(set(self._extra_fields_doc + list(self._metadata_filter.keys())))
@@ -166,7 +170,6 @@ class CorpusQuery:
                         "&first=" + str(self._start_position) +
                         "&patt=" + urllib.parse.quote_plus(self._pattern) +
                         "&filter=" + urllib.parse.quote_plus(lucene_filter) )
-                print(url)
             else:
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
             response = requests.get(url)
@@ -178,7 +181,6 @@ class CorpusQuery:
                 df, next_page = corpusHelpers._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
             # If there are next pages, call search_corpus recursively
             if next_page > 0:
-                status.remove_wait_indicator()
                 self._start_position = next_page
                 df_more = self.search().kwic()
                 df = df.append(df_more, ignore_index=True)
@@ -194,6 +196,11 @@ class CorpusQuery:
                     filters = corpusHelpers._create_pandas_metadata_filter(df, self._metadata_filter)
                     df = df[filters]
             
+            # Append new entries (df) to existing dataframe (self._df_kwic): this is relevant if calling this function for multiple search queries
+            df = self._df_kwic.append(df, ignore_index=True)
+            
+            self._search_performed = True
+
             # Save dataframe in object, so it can be retrieved with .kwic()
             return self._copyWith('_df_kwic', df)
 
@@ -207,6 +214,8 @@ class CorpusQuery:
         '''
         Get the XML response (unparsed) of a treebank search 
         '''
+        if not self._search_performed:
+            raise ValueError("First perform search() on this object!")
         if self._method == "fcs" and self._metadata_filter:
             raise ValueError("Retrieving xml not possible for method FCS in combination with metadata filters. Remove metadata filter and try again.")
         return "\n".join(self._response)
@@ -215,6 +224,8 @@ class CorpusQuery:
         '''
         Get the Pandas DataFrame with one keyword in context (KWIC) per row
         '''
+        if not self._search_performed:
+            raise ValueError("First perform search() on this object!")
         return self._df_kwic
 
 
