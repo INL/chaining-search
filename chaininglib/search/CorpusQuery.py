@@ -168,7 +168,7 @@ class CorpusQuery:
                 url = ( constants.AVAILABLE_CORPORA[self._corpus]+ "/hits?"
                         "&number=" + str(constants.RECORDS_PER_PAGE) +
                         "&first=" + str(self._start_position) +
-                        "&patt=" + urllib.parse.quote_plus(self._pattern) +
+                        "&patt=" + urllib.parse.quote(self._pattern) +
                         "&filter=" + urllib.parse.quote_plus(lucene_filter) )
             else:
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
