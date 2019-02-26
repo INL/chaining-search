@@ -10,7 +10,7 @@ import pandas as pd
 class CorpusQuery:
     """ A query on a token-based corpus. """
 
-    def __init__(self, corpus, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 0, metadata_filter={}, method="fcs"):
+    def __init__(self, corpus, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 0, metadata_filter={}, method=None):
         
         self._corpus = corpus
         self._pattern = pattern
@@ -22,10 +22,22 @@ class CorpusQuery:
         self._extra_fields_token = extra_fields_token
         self._start_position = start_position
         self._metadata_filter = metadata_filter
-        self._method = method
         self._response = []
         self._df_kwic = pd.DataFrame()
         self._search_performed = False
+        
+        if self._corpus not in constants.AVAILABLE_CORPORA:
+            raise ValueError("Unknown corpus: " + self._corpus)
+
+        if method is not None:
+            # If method supplied by user, use it
+            self._method = method
+        # Otherwise, use default method given in config
+        elif "default_method" in constants.AVAILABLE_CORPORA[self._corpus]:
+            self._method = constants.AVAILABLE_CORPORA[self._corpus]["default_method"]
+        # Last resort: try FCS
+        else:
+            self._method="fcs"
 
     def __str__(self):
         return 'CorpusQuery({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})'.format(
@@ -110,8 +122,6 @@ class CorpusQuery:
         >>> df = corpus_obj.results()
         '''
 
-        if self._corpus not in constants.AVAILABLE_CORPORA:
-            raise ValueError("Unknown corpus: " + self._corpus)
             
         # default is: the pattern is supplied by the user
         # if not....
@@ -150,22 +160,23 @@ class CorpusQuery:
         
         try:
             if self._method=="fcs":
-                
+                print("fcs")
                 # FCS does filtering on query results, so we have to request the filter fields in our query
                 self._extra_fields_doc = list(set(self._extra_fields_doc + list(self._metadata_filter.keys())))
 
                 # Do request to federated content search corpora, so we get same output format for every corpus
-                url = ( "http://portal.clarin.inl.nl/fcscorpora/clariah-fcs-endpoints/sru?operation=searchRetrieve&queryType=fcs"+
+                url = ( constants.FCS_URL +
                         "&maximumRecords=" + str(constants.RECORDS_PER_PAGE) +
                         "&startRecord=" + str(self._start_position) +
                         "&x-fcs-context=" + self._corpus + 
                         "&query=" + urllib.parse.quote_plus(self._pattern) )
             elif self._method=="blacklab":
-                if constants.AVAILABLE_CORPORA[self._corpus] == "":
+                print("bl")
+                if "blacklab_url" not in constants.AVAILABLE_CORPORA[self._corpus]:
                     raise ValueError("Blacklab access not available for this corpus.")
                 # Blacklab can filter metadata on server
                 lucene_filter = corpusHelpers._create_lucene_metadata_filter(self._metadata_filter)
-                url = ( constants.AVAILABLE_CORPORA[self._corpus]+ "/hits?"
+                url = ( constants.AVAILABLE_CORPORA[self._corpus]["blacklab_url"] + "/hits?"
                         "&number=" + str(constants.RECORDS_PER_PAGE) +
                         "&first=" + str(self._start_position) +
                         "&patt=" + urllib.parse.quote(self._pattern) +
@@ -241,6 +252,6 @@ def create_corpus(name):
 
 def get_available_corpora():
     '''
-    This function returns the list of the available lexica
+    This function returns the list of the available corpora
     '''
     return list(constants.AVAILABLE_CORPORA.keys())

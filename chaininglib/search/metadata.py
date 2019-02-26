@@ -54,7 +54,7 @@ def _corpus_metadata_blacklab(corpus_name):
     Returns:
         A dictionary of with lists of document and token metadata
     '''
-    corpus_url = constants.AVAILABLE_CORPORA[corpus_name]
+    corpus_url = constants.AVAILABLE_CORPORA[corpus_name]["blacklab_url"]
     response = requests.get(corpus_url)
     response_text = response.text  
     return _parse_blacklab_metadata(response_text)
