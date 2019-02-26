@@ -8,7 +8,7 @@ import pandas as pd
 # 'nederlab':''}
 
 AVAILABLE_CORPORA = {'chn':{'blacklab_url':'http://svprmc05.inl.nl/blacklab-server/chn', 'default_method':'blacklab'},
-                     'opensonar':{'blacklab_url':'http://172.16.10.93:8080/blacklab-server/opensonar', 'default_method':'fcs'},
+                     'opensonar':{'blacklab_url':'http://172.16.10.93:8080/blacklab-server/opensonar', 'default_method':'blacklab'},
                      'zeebrieven':{'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/zeebrieven','default_method':'blacklab'}, # 'http://svprmc20.ivdnt.org/blacklab-server/zeebrieven',
                      'gysseling':{'blacklab_url':'http://svprmc20.ivdnt.org/blacklab-server/gysseling', 'default_method':'blacklab'},
                      'nederlab':{'default_method':'fcs'}}

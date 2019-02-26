@@ -22,7 +22,7 @@ def create_save_dataframe_ui(df, filename=None):
     dfops.check_valid_df("create_save_dataframe_ui", df)
     
     # build ui for saving results
-    default_filename = 'mijn_resultaten.csv' if filename is None else re.sub('[\W_]+', '', filename)+".csv"
+    default_filename = 'mijn_resultaten.csv' if filename is None else re.sub('[\W_]+', '_', filename)+".csv"
     saveResultsCaption = widgets.Label(value='Sla uw resultaten op:')
     fileNameField = widgets.Text(value=default_filename)
     savebutton = widgets.Button(

@@ -51,7 +51,6 @@ def get_frequency_list(df_corpus):
 
 
 def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wordformColumnName='word'):
-    
     print("extracting lexicon...")
     
     # Instantiate a DataFrame 
@@ -63,7 +62,6 @@ def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wo
         dfs_corpus = [dfs_corpus]
         
     for df_corpus in dfs_corpus:
-    
         # Exract the basic layers (lemma, pos, wordform) contained in df_corpus
         column_names = list(df_corpus.columns.values)
         
@@ -76,11 +74,9 @@ def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wo
         # To be able to extract a lexicon, we need at least: lemma, pos, wordform
         # (only lemma and wordform is dangerous, since there can be homonyms with different grammatical categories,
         #  so when grouping them, we would end up with mixed up paradigms)
-
-        
         if (lemmaColumnName not in set(column_names) or posColumnName not in set(column_names) or wordformColumnName not in set(column_names)):
-            raise ValueError("extract_lexicon() expects the Pandas DataFrame input to contain at least these columns: "+lemmaColumnName+", "+posColumnName+" and "+wordformColumnName)
-
+            print("Skipping corpus. extract_lexicon() expects the Pandas DataFrame input to contain at least these columns: "+lemmaColumnName+", "+posColumnName+" and "+wordformColumnName)
+            continue
 
 
         # loop through the layers, extract those as temporary DataFrame, 

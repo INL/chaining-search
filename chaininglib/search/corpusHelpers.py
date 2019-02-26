@@ -89,7 +89,7 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
                 field_value = field.text
                 doc_metadata_all[pid][field_name] = field_value
 
-    # Traverse hits
+    # Determine max_len of hits
     for entry in root.iter("hit"):
         left = entry.find('left').findall('w')
         match = entry.find('match').findall('w')
@@ -105,6 +105,20 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         n_tokens = len(tokens)
         if n_tokens > max_len:
             max_len = n_tokens
+
+    # Traverse hits
+    for entry in root.iter("hit"):
+        left = entry.find('left').findall('w')
+        match = entry.find('match').findall('w')
+        right = entry.find('right').findall('w')
+        
+        # If detailed_context on, return all layers for match+context
+        if detailed_context:
+            tokens = left+match+right
+        # If detailed_context off, return all layers only for match
+        else:
+            tokens = match
+        
 
         layer = defaultdict(list)
         for token in tokens:
@@ -129,8 +143,7 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
             left_context = None
             right_context = None
 
-        data, cols = _combine_layers(layer, n_tokens, fields_doc, doc_metadata, detailed_context, left_context, right_context)
-        
+        data, cols = _combine_layers(layer, max_len, fields_doc, doc_metadata, detailed_context, left_context, right_context)
         records.append(data)
         records_len.append(n_tokens)
 
@@ -292,7 +305,7 @@ def _combine_layers(hit_layer, n_tokens, doc_metadata_req, doc_metadata_recv, de
     layers_keys = sorted(hit_layer.keys())
     # Original structure is list of tokens per layer id
     # Arrange items first on token, then on layer_id
-    layers_token_flat = [hit_layer[layer_id][n] for n in range(n_tokens) for layer_id in layers_keys]
+    layers_token_flat = [hit_layer[layer_id][n] if n < len(hit_layer[layer_id]) else "" for n in range(n_tokens) for layer_id in layers_keys]
     # Flatten list of document metadata fields
     # Use all requested fields, some of which may not be available in this hit
     doc_flat = [doc_metadata_recv[field] if field in doc_metadata_recv else "" for field in doc_metadata_req]

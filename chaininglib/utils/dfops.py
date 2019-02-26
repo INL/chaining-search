@@ -56,14 +56,14 @@ def property_freq(df, column_name):
 
 
 
-def df_filter(df_column, query, method='contains'):    
+def df_filter(df_column, pattern, method='contains'):    
     '''
     Helper function to build some condition to filter a Pandas DataFrame, 
     given a column and some value(s) to filter this column with
     
     Args:
         df_column: a Pandas DataFrame column to filter on
-        query: string, set or interval list to filter on
+        pattern: string, set or interval list to filter on
         method: "contains", "match", isin" or "interval"
     Returns:
         a condition
@@ -73,22 +73,22 @@ def df_filter(df_column, query, method='contains'):
     '''
     
     if method=="contains":
-        if not isinstance(query,str):
-            raise ValueError("df_filter 'contains' method needs string as query.")
-        condition = df_column.str.contains(query)    
+        if not isinstance(pattern,str):
+            raise ValueError("df_filter 'contains' method needs string as pattern.")
+        condition = df_column.str.contains(pattern, na=False)    
     elif method=="match":
-        if not isinstance(query,str):
-            raise ValueError("df_filter 'match' method needs string as query.")
-        condition = df_column.str.match(query)  
+        if not isinstance(pattern,str):
+            raise ValueError("df_filter 'match' method needs string as pattern.")
+        condition = df_column.str.match(pattern, na=False)  
     elif method=="isin":
-        if not isinstance(query,set):
-            raise ValueError("df_filter 'isin' method needs set as query.")
-        condition = df_column.isin(query)
+        if not isinstance(pattern,set):
+            raise ValueError("df_filter 'isin' method needs set as pattern.")
+        condition = df_column.isin(pattern)
     elif method=="interval":
-        if not (isinstance(query, list) and len(query)==2):
-            raise ValueError("df_filter 'interval' method needs a list consisting of a lower and upper boundary as query.")
-        val_from = query[0]
-        val_to = query[1]
+        if not (isinstance(pattern, list) and len(pattern)==2):
+            raise ValueError("df_filter 'interval' method needs a list consisting of a lower and upper boundary as pattern.")
+        val_from = pattern[0]
+        val_to = pattern[1]
         if val_from is None and val_to is None:
             raise ValueError("Lower boundary or upper boundary of interval should be given.")
         col_numeric = df_column.astype('int32')

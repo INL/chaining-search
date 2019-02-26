@@ -1,45 +1,23 @@
 import json
 import pandas as pd
-import copy
 import urllib
 import requests
 import chaininglib.constants as constants
 import chaininglib.ui.status as status
 import chaininglib.search.lexiconQueries as lexiconQueries
 
-class LexiconQuery:
+from chaininglib.search.GeneralQuery import GeneralQuery
+
+class LexiconQuery(GeneralQuery):
     """ A query on a lexicon. """
 
-    def __init__(self, lexicon):
-        self._lexicon = lexicon
-        self._lemma = None
-        self._pos = None
-        self._response = None
-        self._search_performed = False
+    def __init__(self, resource, lemma=None, pos=None):
+        super().__init__(resource, pattern=None, lemma=lemma, word=None, pos=pos)
         
 
     def __str__(self):
         return 'LexiconQuery({0}, {1}, {2})'.format(
-            self._lexicon, self._lemma, self._pos)
-
-    def _copyWith(self, attrName, attrValue):
-        c = copy.copy(self)
-        setattr(c, attrName, attrValue)
-        return c
-
-    def lemma(self, l):
-        '''
-        Set a lemma as part of a lexicon search pattern
-        '''
-        return self._copyWith('_lemma', l)
-    
-    def pos(self, p):
-        '''
-        Set a part-of-speech as part of a lexicon search pattern
-        '''
-        return self._copyWith('_pos', p)
-    
-    
+            self._resource, self._lemma, self._pos)
 
     def search(self):
         '''
@@ -50,20 +28,20 @@ class LexiconQuery:
         >>> # get the results as table of kwic's
         >>> df = lexicon_obj.kwic()
         '''
-        if self._lexicon not in constants.AVAILABLE_LEXICA:
-            raise ValueError("Unknown lexicon: " + self._lexicon)
+        if self._resource not in constants.AVAILABLE_LEXICA:
+            raise ValueError("Unknown lexicon: " + self._resource)
             
         if self._lemma is None and self._pos is None:
             raise ValueError('A lemma and/or a part-of-speech is required')
             
         # build query
-        query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._lexicon)
+        query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._resource)
             
         # show wait indicator, so the user knows what's happening
-        status.show_wait_indicator('Searching '+self._lexicon)
+        status.show_wait_indicator('Searching '+self._resource)
 
         # default endpoint, except when diamant is invoked
-        endpoint = constants.AVAILABLE_LEXICA[self._lexicon]        
+        endpoint = constants.AVAILABLE_LEXICA[self._resource]        
 
         try:
             # Accept header is needed for virtuoso, it isn't otherwise!
@@ -83,7 +61,7 @@ class LexiconQuery:
            
         except Exception as e:
             status.remove_wait_indicator()
-            raise ValueError("An error occured when searching lexicon " + self._lexicon + ": "+ str(e))
+            raise ValueError("An error occured when searching lexicon " + self._resource + ": "+ str(e))
     
     
 
@@ -93,8 +71,7 @@ class LexiconQuery:
         '''
         Get the JSON response (unparsed) of a lexicon search 
         '''
-        if not self._search_performed:
-            raise ValueError("First perform search() on this object!")
+        self.check_search_performed()
 
         return self._response
     
@@ -109,18 +86,18 @@ class LexiconQuery:
         >>> df = lexicon_obj.kwic()
         '''
         
-        if not self._search_performed:
-            raise ValueError("First perform search() on this object!")
+        self.check_search_performed()
 
         records_string = self.json()
         
-        df = pd.read_json(records_string, orient="records")
+        # _df_kwic is assigned instead of appended, so kwic() can be called multiple times
+        self._df_kwic = pd.read_json(records_string, orient="records")
 
         # make sure cells containing NULL are added too, otherwise we'll end up with ill-formed data
         # CAUSES MALFUNCTION: df = df.fillna('')
-        df = df.applymap(lambda x: '' if pd.isnull(x) else x["value"])  
+        self._df_kwic = self._df_kwic.applymap(lambda x: '' if pd.isnull(x) else x["value"])  
 
-        return df
+        return self._df_kwic
     
     
 

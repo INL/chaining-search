@@ -1,22 +1,20 @@
-import copy
 import urllib
 import requests
+import copy
 import chaininglib.constants as constants
 import chaininglib.ui.status as status
 import chaininglib.search.corpusHelpers as corpusHelpers
 import chaininglib.search.corpusQueries as corpusQueries
 import pandas as pd
 
-class CorpusQuery:
+from chaininglib.search.GeneralQuery import GeneralQuery
+
+class CorpusQuery(GeneralQuery):
     """ A query on a token-based corpus. """
 
-    def __init__(self, corpus, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 0, metadata_filter={}, method=None):
+    def __init__(self, resource, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 0, metadata_filter={}, method=None):
         
-        self._corpus = corpus
-        self._pattern = pattern
-        self._lemma = lemma
-        self._word = word
-        self._pos = pos
+        super().__init__(resource, pattern, lemma, word, pos)
         self._detailed_context = detailed_context
         self._extra_fields_doc = extra_fields_doc
         self._extra_fields_token = extra_fields_token
@@ -26,51 +24,22 @@ class CorpusQuery:
         self._df_kwic = pd.DataFrame()
         self._search_performed = False
         
-        if self._corpus not in constants.AVAILABLE_CORPORA:
-            raise ValueError("Unknown corpus: " + self._corpus)
+        if self._resource not in constants.AVAILABLE_CORPORA:
+            raise ValueError("Unknown corpus: " + self._resource)
 
         if method is not None:
             # If method supplied by user, use it
             self._method = method
         # Otherwise, use default method given in config
-        elif "default_method" in constants.AVAILABLE_CORPORA[self._corpus]:
-            self._method = constants.AVAILABLE_CORPORA[self._corpus]["default_method"]
+        elif "default_method" in constants.AVAILABLE_CORPORA[self._resource]:
+            self._method = constants.AVAILABLE_CORPORA[self._resource]["default_method"]
         # Last resort: try FCS
         else:
             self._method="fcs"
 
     def __str__(self):
         return 'CorpusQuery({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})'.format(
-            self._corpus, self._pattern, self._lemma, self._word, self._pos, self._detailed_context, self._extra_fields_doc, self._extra_fields_token, self._start_position, self._metadata_filter, self._method)
-
-    def _copyWith(self, attrName, attrValue):
-        c = copy.copy(self)
-        setattr(c, attrName, attrValue)
-        return c
-
-    def pattern(self, p):
-        '''
-        Set a corpus search pattern 
-        '''
-        return self._copyWith('_pattern', p)
-    
-    def lemma(self, l):
-        '''
-        Set a lemma as part of a corpus search pattern
-        '''
-        return self._copyWith('_lemma', l)
-    
-    def word(self, w):
-        '''
-        Set a word as part of a corpus search pattern
-        '''
-        return self._copyWith('_word', w)
-    
-    def pos(self, p):
-        '''
-        Set a part-of-speech as part of a corpus search pattern
-        '''
-        return self._copyWith('_pos', p)
+            self._resource, self._pattern_given, self._lemma, self._word, self._pos, self._detailed_context, self._extra_fields_doc, self._extra_fields_token, self._start_position, self._metadata_filter, self._method)
 
     def detailed_context(self, detailed_context=True):
         '''
@@ -125,18 +94,19 @@ class CorpusQuery:
             
         # default is: the pattern is supplied by the user
         # if not....
-                
         # nothing given
-        if self._pattern is None and self._lemma is None and self._word is None and self._pos is None:
+        if self._pattern_given is None and self._lemma is None and self._word is None and self._pos is None:
             raise ValueError('A pattern OR a lemma/word/pos is required')
          
         # too much given
-        if self._pattern is not None and (self._lemma is not None or self._word is not None or self._pos is not None):
-                raise ValueError('When a pattern is given, lemma, word and/or pos cannot be supplied too. Redundant!')
+        if self._pattern_given is not None and (self._lemma is not None or self._word is not None or self._pos is not None):
+            raise ValueError('When a pattern (%s) is given, lemma (%s), word (%s) and/or pos (%s) cannot be supplied too. Redundant!' % (self._pattern, self._lemma, self._word, self._pos))
         
         # pattern will be built with lemma, word, pos
-        if self._pattern is None:
+        if self._pattern_given is None:
             self._pattern = corpusQueries.corpus_query(self._lemma, self._word, self._pos)
+        else:
+            self._pattern = copy.copy(self._pattern_given)
         
         # FCS starts counting at 1. Adjust 0 (default start position) to 1.
         # Other start positions, which are probably given deliberately, are left as is.
@@ -145,7 +115,7 @@ class CorpusQuery:
 
         # show wait indicator
         status.remove_wait_indicator()
-        status.show_wait_indicator('Searching '+self._corpus+ ' at page '+str(self._start_position))  
+        status.show_wait_indicator('Searching '+self._resource+ ' at result '+str(self._start_position))  
          
         # in case we have multiple patterns, get results for each of them and return those in a list
         if type(self._pattern) is list:
@@ -155,12 +125,9 @@ class CorpusQuery:
                 # Results will get appended
                 self._pattern = one_pattern
                 self = self.search()
-            
-             
-        
+
         try:
             if self._method=="fcs":
-                print("fcs")
                 # FCS does filtering on query results, so we have to request the filter fields in our query
                 self._extra_fields_doc = list(set(self._extra_fields_doc + list(self._metadata_filter.keys())))
 
@@ -168,15 +135,14 @@ class CorpusQuery:
                 url = ( constants.FCS_URL +
                         "&maximumRecords=" + str(constants.RECORDS_PER_PAGE) +
                         "&startRecord=" + str(self._start_position) +
-                        "&x-fcs-context=" + self._corpus + 
+                        "&x-fcs-context=" + self._resource + 
                         "&query=" + urllib.parse.quote_plus(self._pattern) )
             elif self._method=="blacklab":
-                print("bl")
-                if "blacklab_url" not in constants.AVAILABLE_CORPORA[self._corpus]:
+                if "blacklab_url" not in constants.AVAILABLE_CORPORA[self._resource]:
                     raise ValueError("Blacklab access not available for this corpus.")
                 # Blacklab can filter metadata on server
                 lucene_filter = corpusHelpers._create_lucene_metadata_filter(self._metadata_filter)
-                url = ( constants.AVAILABLE_CORPORA[self._corpus]["blacklab_url"] + "/hits?"
+                url = ( constants.AVAILABLE_CORPORA[self._resource]["blacklab_url"] + "/hits?"
                         "&number=" + str(constants.RECORDS_PER_PAGE) +
                         "&first=" + str(self._start_position) +
                         "&patt=" + urllib.parse.quote(self._pattern) +
@@ -193,6 +159,7 @@ class CorpusQuery:
             # If there are next pages, call search_corpus recursively
             if next_page > 0:
                 self._start_position = next_page
+
                 df_more = self.search().kwic()
                 df = df.append(df_more, ignore_index=True)
 
@@ -217,7 +184,7 @@ class CorpusQuery:
 
         except Exception as e:
             status.remove_wait_indicator()
-            raise ValueError("An error occured when searching corpus " + self._corpus + ": "+ str(e))
+            raise ValueError("An error occured when searching corpus " + self._resource + ": "+ str(e))
     
     # OUTPUT
 
@@ -225,8 +192,7 @@ class CorpusQuery:
         '''
         Get the XML response (unparsed) of a treebank search 
         '''
-        if not self._search_performed:
-            raise ValueError("First perform search() on this object!")
+        self.check_search_performed()
         if self._method == "fcs" and self._metadata_filter:
             raise ValueError("Retrieving xml not possible for method FCS in combination with metadata filters. Remove metadata filter and try again.")
         return "\n".join(self._response)
@@ -235,8 +201,7 @@ class CorpusQuery:
         '''
         Get the Pandas DataFrame with one keyword in context (KWIC) per row
         '''
-        if not self._search_performed:
-            raise ValueError("First perform search() on this object!")
+        self.check_search_performed()
         return self._df_kwic
 
 
@@ -250,8 +215,8 @@ def create_corpus(name):
     '''
     return CorpusQuery(name)
 
-def get_available_corpora():
+def get_available_corpora(exclude=[]):
     '''
     This function returns the list of the available corpora
     '''
-    return list(constants.AVAILABLE_CORPORA.keys())
+    return [x for x in list(constants.AVAILABLE_CORPORA.keys()) if x not in exclude]

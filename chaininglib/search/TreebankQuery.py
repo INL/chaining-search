@@ -6,30 +6,18 @@ import chaininglib.ui.status as status
 from BaseXClient import BaseXClient
 import pandas as pd
 
-class TreebankQuery:
+from chaininglib.search.GeneralQuery import GeneralQuery
+
+class TreebankQuery(GeneralQuery):
     """ A query on a treebank. """
 
-    def __init__(self, treebank = None):
-        
-        self._treebank = treebank
-        self._pattern = None
-        self._response = None
-        self._search_performed = False
+    def __init__(self, resource = None):
+        super().__init__(resource)
 
     def __str__(self):
         return 'TreebankQuery({0}, {1}, {2})'.format(
-            self._treebank, self._pattern, self._response)
+            self._resource, self._pattern_given, self._response)
 
-    def _copyWith(self, attrName, attrValue):
-        c = copy.copy(self)
-        setattr(c, attrName, attrValue)
-        return c
-
-    def pattern(self, p):
-        '''
-        Set a treebank search pattern 
-        '''
-        return self._copyWith('_pattern', p)
     
     
     
@@ -41,6 +29,7 @@ class TreebankQuery:
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
 
         '''
+        self._pattern = self._pattern_given
         try:
             # show wait indicator, so the user knows what's happening
             status.show_wait_indicator('Searching treebanks')
@@ -75,8 +64,7 @@ class TreebankQuery:
         '''
         Get the XML response (unparsed) of a treebank search 
         '''
-        if not self._search_performed:
-            raise ValueError("First perform search() on this object!")
+        self.check_search_performed()
 
         return self._response
             
@@ -91,12 +79,8 @@ class TreebankQuery:
         >>> df = treebank_obj.kwic()
         '''
         
-        if not self._search_performed:
-            raise ValueError("First perform search() on this object!")
-
-        # Instantiate a DataFrame, in which we will gather all the trees
-        df_treebank = pd.DataFrame()
-        
+        self.check_search_performed()
+        df = pd.DataFrame()
         for one_tree in self.trees():
             
             # get the layers
@@ -117,9 +101,12 @@ class TreebankQuery:
             #print(concatenated_layers)
             
             df_subtree = pd.DataFrame([concatenated_layers], columns=columns_lst)
-            df_treebank = pd.concat( [df_treebank, df_subtree] ) 
-            
-        return df_treebank
+            df = pd.concat( [df, df_subtree], sort=False, ignore_index=True ) 
+        df = df.fillna("")
+
+        # _df_kwic is assigned instead of appended, so kwic() can be called multiple times
+        self._df_kwic = df
+        return self._df_kwic
         
         
             
@@ -133,8 +120,7 @@ class TreebankQuery:
         >>> df = treebank_obj.trees()
         '''
         
-        if not self._search_performed:
-            raise ValueError("First perform search() on this object!")
+        self.check_search_performed()
 
         trees = _parse_treebank_xml(self._response)
         
