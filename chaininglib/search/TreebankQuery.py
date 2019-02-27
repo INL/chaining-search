@@ -5,6 +5,7 @@ from chaininglib.search.treebankParse import _parse_treebank_xml
 import chaininglib.ui.status as status
 from BaseXClient import BaseXClient
 import pandas as pd
+import chaininglib.search.treebankQueries as treebankQueries
 
 from chaininglib.search.GeneralQuery import GeneralQuery
 
@@ -29,7 +30,21 @@ class TreebankQuery(GeneralQuery):
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
 
         '''
-        self._pattern = self._pattern_given
+        if self._pattern_given:
+            if self._lemma or self._word or self._pos:
+                raise ValueError('When a pattern (%s) is given, lemma (%s), word (%s) and/or pos (%s) cannot be supplied too. Redundant!' % (self._pattern_given, self._lemma, self._word, self._pos))
+            else:
+                # Use pattern supplied by user
+                self._pattern = copy.copy(self._pattern_given)
+        else:
+            # Pattern will be built with lemma, word, pos
+            if self._lemma or self._word or self._pos:
+                self._pattern = treebankQueries.treebank_query(self._lemma, self._word, self._pos)
+                print(self._pattern)
+            else:
+                # If nothing is given: complain
+                raise ValueError('A pattern OR a lemma/word/pos is required')
+        
         try:
             # show wait indicator, so the user knows what's happening
             status.show_wait_indicator('Searching treebanks')

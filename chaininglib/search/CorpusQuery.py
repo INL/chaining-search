@@ -91,22 +91,22 @@ class CorpusQuery(GeneralQuery):
         >>> df = corpus_obj.results()
         '''
 
-            
-        # default is: the pattern is supplied by the user
-        # if not....
-        # nothing given
-        if self._pattern_given is None and self._lemma is None and self._word is None and self._pos is None:
-            raise ValueError('A pattern OR a lemma/word/pos is required')
-         
-        # too much given
-        if self._pattern_given is not None and (self._lemma is not None or self._word is not None or self._pos is not None):
-            raise ValueError('When a pattern (%s) is given, lemma (%s), word (%s) and/or pos (%s) cannot be supplied too. Redundant!' % (self._pattern, self._lemma, self._word, self._pos))
-        
-        # pattern will be built with lemma, word, pos
-        if self._pattern_given is None:
-            self._pattern = corpusQueries.corpus_query(self._lemma, self._word, self._pos)
+        if self._pattern_given:
+            if self._lemma or self._word or self._pos:
+                raise ValueError('When a pattern (%s) is given, lemma (%s), word (%s) and/or pos (%s) cannot be supplied too. Redundant!' % (self._pattern_given, self._lemma, self._word, self._pos))
+            else:
+                # Use pattern supplied by user
+                self._pattern = copy.copy(self._pattern_given)
         else:
-            self._pattern = copy.copy(self._pattern_given)
+            # Pattern will be built with lemma, word, pos
+            if self._lemma or self._word or self._pos:
+                self._pattern = corpusQueries.corpus_query(self._lemma, self._word, self._pos)
+            else:
+                # If nothing is given: complain
+                raise ValueError('A pattern OR a lemma/word/pos is required')
+        
+        
+
         
         # FCS starts counting at 1. Adjust 0 (default start position) to 1.
         # Other start positions, which are probably given deliberately, are left as is.
