@@ -20,7 +20,7 @@ def treebank_query(lemma=None, word=None, pos=None):
     if word is not None:
         parts.append( r'@word="'+ word + r'"' )
     if pos is not None:
-        parts.append( r'@pos="'+ pos + r'"' )
+        parts.append( r'@pt="'+ pos + r'"' )
     return r'xquery //node[' + r' and '.join(parts) + r']'
 
 
