@@ -24,6 +24,7 @@ the required Python packages:
 pip install -r requirements.txt
 jupyter contrib nbextension install --sys-prefix
 jupyter nbextensions_configurator enable --sys-prefix
+jupyter nbextension enable collapsible_headings/main
 python3 -m ipykernel install --user --name env
 ```
 
