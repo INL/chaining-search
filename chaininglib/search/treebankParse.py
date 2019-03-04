@@ -3,6 +3,13 @@ import xml.etree.ElementTree as ET
 
 
 def _parse_treebank_xml (text):
+    '''
+    Parse the XML of a treebank
+    Args:
+        text: XML response from treebank
+    Returns:
+        List of tree representations of data
+    '''
     
     # we need the XML to have a root element to be valid!
     text = '<root>' + text + '</root>'
@@ -26,7 +33,14 @@ def _parse_treebank_xml (text):
         
         
         
-def _parse_node (node):    
+def _parse_node (node):
+    '''
+    Parse one XML node of a treebank
+    Args:
+        node: XML of one node
+    Returns:
+        tree representation of data
+    '''    
     
     # read list attributes
     
@@ -47,24 +61,17 @@ def _parse_node (node):
     
     
     # instantiate (sub)tree
-    
     tree = TreeObject(id, begin, end, lemma, postag, cat, word)
-    
     
     # parse leaves (recursively) and return results
     
     subNodes = node.findall("node")
     
     if len(subNodes) == 0:
-        
         return tree
-        
     else:
-        
         for subNode in subNodes:
             part = _parse_node(subNode)  # recursive call
             tree.addPart(part)
             
         return tree
-            
-        

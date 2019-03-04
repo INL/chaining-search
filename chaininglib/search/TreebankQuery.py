@@ -24,7 +24,9 @@ class TreebankQuery(GeneralQuery):
     
     def search(self):
         '''
-        Perform a treebank search 
+        Perform a treebank search
+        Returns:
+            TreebankQuery object
         
         >>> # build a corpus search query
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
@@ -78,6 +80,8 @@ class TreebankQuery(GeneralQuery):
     def xml(self):
         '''
         Get the XML response (unparsed) of a treebank search 
+        Returns:
+            XML string
         '''
         self.check_search_performed()
 
@@ -86,7 +90,9 @@ class TreebankQuery(GeneralQuery):
 
     def kwic(self):
         '''
-        Get the results (as Pandas DataFrame) of a treebank search 
+        Get the results (as Pandas DataFrame) of a treebank search, with one keyword in context (KWIC) per row
+        Returns:
+            Pandas DataFrame
         
         >>> # build a corpus search query
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
@@ -97,7 +103,6 @@ class TreebankQuery(GeneralQuery):
         self.check_search_performed()
         df = pd.DataFrame()
         for one_tree in self.trees():
-            
             # get the layers
             layers = one_tree.toLayers()
             nr_of_tokens = len(layers)
@@ -128,6 +133,8 @@ class TreebankQuery(GeneralQuery):
     def trees(self):
         '''
         Get results (as nested objects) matching a treebank search query
+        Returns:
+            tree object
         
         >>> # build a corpus search query
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
@@ -146,6 +153,10 @@ class TreebankQuery(GeneralQuery):
 def create_treebank(name=None):
     '''
     API constructor
+    Args:
+        name: Name of the treebank
+    Returns:
+        TreebankQuery object
     
     >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
     >>> df = treebank_obj.kwic()

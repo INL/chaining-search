@@ -23,25 +23,41 @@ class GeneralQuery:
 
     def pattern(self, p):
         '''
-        Set a corpus search pattern 
+        Set a corpus search pattern
+        Args:
+            p: pattern
+        Returns:
+            search object
         '''
         return self._copyWith('_pattern_given', p)
     
     def lemma(self, l):
         '''
         Set a lemma as part of a corpus search pattern
+        Args:
+            l: lemma
+        Returns:
+            search object
         '''
         return self._copyWith('_lemma', l)
     
     def word(self, w):
         '''
-        Set a word as part of a corpus search pattern
+        Set a word form as part of a corpus search pattern
+        Args:
+            w: word form
+        Returns:
+            search object
         '''
         return self._copyWith('_word', w)
     
     def pos(self, p):
         '''
         Set a part-of-speech as part of a corpus search pattern
+        Args:
+            p: part-of-speech (POS) tag
+        Returns:
+            search object
         '''
         return self._copyWith('_pos', p)
     

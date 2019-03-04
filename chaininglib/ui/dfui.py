@@ -105,12 +105,12 @@ def display_df(dfs, labels=None, mode='table'):
         N/A
     
     >>> # call with a single pattern
-    >>> df_corpus = create_corpus(corpus_to_search).pattern(some_query).results()
+    >>> df_corpus = create_corpus(corpus_to_search).pattern(some_query).kwic()
     >>> display_df(df_corpus)
     
     >>> # call with a list of pattern
     >>> list_of_queries = [ corpus_query(lemma=syn) for syn in syn_list ]
-    >>> result_dict = create_corpus(corpus).pattern(list_of_queries).results()
+    >>> result_dict = create_corpus(corpus).pattern(list_of_queries).kwic()
     >>> display_df(result_dict, labels=list(syn_list))
     '''
     

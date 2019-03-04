@@ -2,7 +2,6 @@ from nltk.tag.perceptron import PerceptronTagger
 from chaininglib.utils.dfops import property_freq, df_filter
 import pandas as pd
 
-
 # beware: just like chaininglib.utils.dfops, this file contains function operating on DataFrames.
 # However the functions in this file aim to manipulate DataFrames with corpus data, 
 # whereas the functions in dfops are more general
@@ -51,6 +50,16 @@ def get_frequency_list(df_corpus):
 
 
 def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wordformColumnName='word'):
+    '''
+    This method creates a lexicon from a list of corpus search results. Lemma, POS and word column names from the corpus results are also used for the resulting lexicon
+    Args:
+        dfs_corpus: list of Pandas DataFrames with search results from different corpora
+        lemmaColumnName: column name for lemma in dfs_corpus
+        posColumnName: column name for part-of-speech in dfs_corpus
+        wordformColumnName: column name for word form in dfs_corpus
+    Returns:
+        a Pandas DataFrame representing a lexicon, with lemmaColumnName, posColumnName and wordformColumnName as columns
+    '''
     print("extracting lexicon...")
     
     # Instantiate a DataFrame 

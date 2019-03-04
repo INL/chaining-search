@@ -9,7 +9,7 @@ def treebank_query(lemma=None, word=None, pos=None):
         a treebank query string
         
     >>> lemma_query = corpus_query(lemma="lopen")
-    >>> df_corpus = create_corpus("chn").pattern(lemma_query).results()
+    >>> df_corpus = create_corpus("chn").pattern(lemma_query).kwic()
     >>> display(df_corpus)
     '''
     

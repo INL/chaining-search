@@ -8,6 +8,14 @@ import chaininglib.utils.dfops as dfops
 
 
 def _create_lucene_metadata_filter(filter_dict):
+    '''
+    Create a Lucene metadata filter, based on a dictionary of conditions.
+    
+    Args:
+        filter_dict: Dictionary of conditions. The key represents the column to be filtered. If the value is a string, the value will be matched exactly. If the value is a list, it will be interpreted as a numerical interval.
+    Returns:
+        Lucene metadata filter, which can be included in query to Blacklab server
+    '''
     filter_string = ""
     for i, feature_name in enumerate(filter_dict):
         filter_string += feature_name + ":"
@@ -28,8 +36,18 @@ def _create_lucene_metadata_filter(filter_dict):
             filter_string += " AND "
     return filter_string
 
-# TODO: Should we use functions from df_filter here, and change functionality of df_filter accordingly?
 def _create_pandas_metadata_filter(df, filter_dict):
+    '''
+    Create a Pandas DataFrame filter, based on a dictionary of conditions.
+    
+    Args:
+        df: Pandas DataFrame on which the resulting filter of this method will be applied. The DataFrame is used to construct the Pandas filter: the filter will be DataFrame-specific.
+        filter_dict: Dictionary of conditions. The key represents the column to be filtered. If the value is a string, the value will be matched exactly. If the value is a list, it will be interpreted as a numerical interval.
+    Returns:
+        Pandas DataFrame filter, which can be applied to df
+    
+    >>> _create_pandas_metadata_filter(df, {"author":"P.C. Hooft", "witnessYear_from":[1700,1800]})
+    '''
     i = 0
     for feature_name in filter_dict:
         feature_value = filter_dict[feature_name]
@@ -63,7 +81,7 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         extra_fields_token: extra token layers to add to the results, if needed
     Returns:
         df: a Pandas DataFrame representing the parse results
-        next_pos: the next result page to be parsed (since the results might be spread among several XML response pages), 
+        next_pos: the next result to be parsed (since the results might be spread among several XML response pages), 
         or 0 if there is no page left to be parsed
     '''
     # TODO: should we secure against untrusted XML?
@@ -177,7 +195,7 @@ def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fiel
         extra_fields_token: extra token layers to add to the results, if needed
     Returns:
         df: a Pandas DataFrame representing the parse results
-        next_pos: the next result page to be parsed (since the results might be spread among several XML response pages), 
+        next_pos: the next result to be parsed (since the results might be spread among several XML response pages), 
         or 0 if there is no page left to be parsed
     '''
     
@@ -326,5 +344,3 @@ def _combine_layers(hit_layer, n_tokens, doc_metadata_req, doc_metadata_recv, de
 
 
     return data, columns
-
-

@@ -43,52 +43,77 @@ class CorpusQuery(GeneralQuery):
 
     def detailed_context(self, detailed_context=True):
         '''
-        Request a corpus search object to return a detailed context.
-        If True, every single tokens will be returned with multiple information layers (like lemma, wordfor, part-of-speech, ...)
-        If False, only hits will have multiple information layers
+        Request a CorpusQuery object to return a detailed context.
+        Args:
+            detailed_context: If True, every single tokens will be returned with multiple information layers (like lemma, wordfor, part-of-speech, ...). If False, only hits will have multiple information layers
+
+        Returns:
+            CorpusQuery object
         '''
         return self._copyWith('_detailed_context', detailed_context)
 
     def extra_fields_doc(self, extra_fields_doc):
         '''
-        Request a corpus search object to return the named document metadata fields.
+        Request a CorpusQuery object to return the named document metadata fields.
+        Args:
+            extra_fields_doc: List of extra document metadata fields
+        Returns:
+            CorpusQuery object
         '''
         return self._copyWith('_extra_fields_doc', extra_fields_doc)
 
     def extra_fields_token(self, extra_fields_token):
         '''
-        Request a corpus search object to return the named extra token layers.
+        Request a CorpusQuery object to return the named extra token layers.
+        Args:
+            extra_fields_token: List of extra token layers
+        Returns:
+            CorpusQuery object
         '''
         return self._copyWith('_extra_fields_token', extra_fields_token)
 
     def start_position(self, start_position):
         '''
-        Request a corpus search object to return the stated page number of the whole result pages collection.
+        Request a CorpusQuery object to return the stated page number of the whole result pages collection.
         This option might not be used by users, but the search procedure needs this to be able to retrieve
         full results, as those might be spread among more pages.
+        Args:
+            start_position: position of start document that will be requested.
+        Returns:
+            CorpusQuery object
         '''
         return self._copyWith('_start_position', start_position)
 
     def metadata_filter(self, metadata_filter):
         '''
-        Set metadata fields to filter results set on, after query has been performed.
+        Set metadata fields to filter results set on. If method is FCS, results will be filtered after the request. For Blacklab, filtered results will be requested from the server.
+        Args:
+            metadata_filter: Dictionary of conditions. The key represents the column to be filtered. If the value is a string, the value will be matched exactly. If the value is a list, it will be interpreted as a numerical interval.
+        Returns:
+            CorpusQuery object
         '''
         return self._copyWith('_metadata_filter', metadata_filter)
     
     def method(self, method):
         '''
-        Set method to make request: fcs (Federated Content Search) or blacklab
+        Set method to make request
+        Args:
+            method: fcs (Federated Content Search) or blacklab
+        Returns:
+            CorpusQuery object
         '''
         return self._copyWith('_method', method)
     
     def search(self):
         '''
         Request results matching a corpus search query
+        Returns:
+            CorpusQuery object
         
         >>> # build a corpus search query
         >>> corpus_obj = create_corpus(some_corpus).pattern(some_pattern)
         >>> # get the results
-        >>> df = corpus_obj.results()
+        >>> df = corpus_obj.kwic()
         '''
 
         if self._pattern_given:
@@ -190,7 +215,9 @@ class CorpusQuery(GeneralQuery):
 
     def xml(self):
         '''
-        Get the XML response (unparsed) of a treebank search 
+        Get the XML response (unparsed) of a treebank search
+        Returns:
+            XML string
         '''
         self.check_search_performed()
         if self._method == "fcs" and self._metadata_filter:
@@ -200,6 +227,8 @@ class CorpusQuery(GeneralQuery):
     def kwic(self):
         '''
         Get the Pandas DataFrame with one keyword in context (KWIC) per row
+        Returns:
+            Pandas DataFrame
         '''
         self.check_search_performed()
         return self._df_kwic
@@ -209,14 +238,20 @@ class CorpusQuery(GeneralQuery):
 def create_corpus(name):
     '''
     API constructor
+    Args:
+        name: corpus name
+    Returns:
+        CorpusQuery object
     
     >>> corpus_obj = create_corpus(some_corpus).pattern(some_pattern)
-    >>> df = corpus_obj.results()
+    >>> df = corpus_obj.kwic()
     '''
     return CorpusQuery(name)
 
 def get_available_corpora(exclude=[]):
     '''
     This function returns the list of the available corpora
+    Returns:
+        list of corpus name strings
     '''
     return [x for x in list(constants.AVAILABLE_CORPORA.keys()) if x not in exclude]
