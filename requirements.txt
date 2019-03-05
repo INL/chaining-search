@@ -8,3 +8,4 @@ pandas
 matplotlib
 nltk
 basexclient
+sphinx

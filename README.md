@@ -1,44 +1,23 @@
 # Chaining search installation
 
 # Linux
-This guide assumes you have a Python 3 interpreter on your system. If not, install it from your distribution's package management system. In this guide, we install all required Python packages in a virtual environment, so packages do not interfere with the systemwide installation.
+Chaining search is a Jupyter notebook, which depends on Python 3 and pip (PyPi). Please install Python 3 and pip via your package management system.
+Now, run our install script:
+```
+./install.sh
+```
+If permission is denied, issue the following command once:
+```
+sudo chmod +x install.sh
+```
+and then run the install script.
 
-First, install `venv` for python3. On Ubuntu, this is done by opening a terminal and typing:
+Every time you want to run the notebook, run the `run.sh` script:
 ```
-$ sudo apt install python3-venv
-```
-
-Now, we create a virtual environment in the folder `env`, and activate it:
-```
-$ python3 -m venv env
-```
-We activate the environement by typing:
-```
-$ source env/bin/activate
-```
-`(env)` will appear in front of your terminal
-
-Now, type the following commands in the terminal, one after the other, to install
-the required Python packages:
-```
-pip install -r requirements.txt
-jupyter contrib nbextension install --sys-prefix
-jupyter nbextensions_configurator enable --sys-prefix
-jupyter nbextension enable collapsible_headings/main
-python3 -m ipykernel install --user --name env
+./run.sh
 ```
 
-Every time you want to run the notebook, make sure the environment is activated (`source env/bin/activate`) and then issue:
-```
-jupyter notebook
-```
-
-A browser window will open. Now, click `chaining_search.ipynb`. The first time you use it, pick the kernel `env` from menu `Kernel > Change kernel > env`
-
-If you would like to move out of the virtual environment, after using the notebook, issue the following command:
-```
-deactivate
-```
+A browser window will open. Now, click `Sandbox.ipynb`. The first time you use it, pick the kernel `env` from menu `Kernel > Change kernel > env`.
 
 -----------------------------------------------
 
