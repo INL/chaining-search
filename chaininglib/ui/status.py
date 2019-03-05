@@ -4,6 +4,7 @@ import chaininglib.constants as constants
 def show_wait_indicator(message=None):
     '''
     Shows a wait indicator, indicating that a process (such as search) is going on.
+    
     Args:
         message: The message shown by the wait indicator
     '''

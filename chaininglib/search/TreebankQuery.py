@@ -25,6 +25,7 @@ class TreebankQuery(GeneralQuery):
     def search(self):
         '''
         Perform a treebank search
+        
         Returns:
             TreebankQuery object
         
@@ -80,6 +81,7 @@ class TreebankQuery(GeneralQuery):
     def xml(self):
         '''
         Get the XML response (unparsed) of a treebank search 
+
         Returns:
             XML string
         '''
@@ -91,6 +93,7 @@ class TreebankQuery(GeneralQuery):
     def kwic(self):
         '''
         Get the results (as Pandas DataFrame) of a treebank search, with one keyword in context (KWIC) per row
+
         Returns:
             Pandas DataFrame
         
@@ -133,6 +136,7 @@ class TreebankQuery(GeneralQuery):
     def trees(self):
         '''
         Get results (as nested objects) matching a treebank search query
+
         Returns:
             tree object
         
@@ -153,8 +157,10 @@ class TreebankQuery(GeneralQuery):
 def create_treebank(name=None):
     '''
     API constructor
+
     Args:
         name: Name of the treebank
+        
     Returns:
         TreebankQuery object
     

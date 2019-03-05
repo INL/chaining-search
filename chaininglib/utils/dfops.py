@@ -12,9 +12,11 @@ def check_valid_df(function_name, obj):
     '''
     This function is called by others to check if input is a DataFrame, when it is expected!
     If the input does not contain a DataFrame, throw an error
+
     Args:
         function_name: the name of the function, so as to be able to show where an error occured
         obj: the object to be checked
+
     Returns:
         N/A
     '''
@@ -26,9 +28,11 @@ def check_valid_df(function_name, obj):
 def property_freq(df, column_name):
     '''
     Count values for a certain property in a results DataFrame, and sort them by frequency
+
     Args:
         df: DataFrame with results, one row per found token
         column_name: Column name (property) to count
+
     Returns:
         a DataFrame of the most values for this property, sorted by frequency. 
         Column 'token count' contains the number of tokens, column 'perc' gives the percentage.
@@ -65,6 +69,7 @@ def df_filter(df_column, pattern, method='contains'):
         df_column: a Pandas DataFrame column to filter on
         pattern: string, set or interval list to filter on
         method: "contains", "match", isin" or "interval"
+
     Returns:
         a condition
         
@@ -109,9 +114,11 @@ def df_filter(df_column, pattern, method='contains'):
 def join_df(df_arr, join_type=None):    
     '''
     This function joins two dataframes (=concat along axis 1) 
+
     Args:
         df_arr: array of Pandas DataFrames
         join_type: {inner, outer (default)}
+
     Returns:
         a single Pandas DataFrame 
         
@@ -133,9 +140,11 @@ def join_df(df_arr, join_type=None):
 def column_difference(df_column1, df_column2):    
     '''
     This function computes differences and similarities between two Pandas DataFrames
+
     Args:
         df_column1: a Pandas DataFrame, filtered by one column
         df_column2: a Pandas DataFrame, filtered by one column
+
     Returns:
         diff_left: array of words only in df_column1
         diff_right: array of words only in df_column2
@@ -164,6 +173,7 @@ def get_rank_diff(df1, df2):
     Args:
         df1: a Pandas DataFrame provided with rankings stored in a column "rank"
         df2: a Pandas DataFrame provided with rankings stored in a column "rank"
+        
     Returns:
         a Pandas DataFrame with lemmata (index), ranks of both input dataframes ('rank_1' and 'rank_2' columns) 
         and the rank_diff ('rank_diff' column).

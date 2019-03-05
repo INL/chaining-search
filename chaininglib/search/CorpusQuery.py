@@ -44,9 +44,11 @@ class CorpusQuery(GeneralQuery):
     def detailed_context(self, detailed_context=True):
         '''
         Request a CorpusQuery object to return a detailed context.
+        
         Args:
             detailed_context: If True, every single tokens will be returned with multiple information layers (like lemma, wordfor, part-of-speech, ...). If False, only hits will have multiple information layers
 
+        
         Returns:
             CorpusQuery object
         '''
@@ -55,8 +57,10 @@ class CorpusQuery(GeneralQuery):
     def extra_fields_doc(self, extra_fields_doc):
         '''
         Request a CorpusQuery object to return the named document metadata fields.
+        
         Args:
             extra_fields_doc: List of extra document metadata fields
+       
         Returns:
             CorpusQuery object
         '''
@@ -65,8 +69,10 @@ class CorpusQuery(GeneralQuery):
     def extra_fields_token(self, extra_fields_token):
         '''
         Request a CorpusQuery object to return the named extra token layers.
+        
         Args:
             extra_fields_token: List of extra token layers
+        
         Returns:
             CorpusQuery object
         '''
@@ -77,8 +83,10 @@ class CorpusQuery(GeneralQuery):
         Request a CorpusQuery object to return the stated page number of the whole result pages collection.
         This option might not be used by users, but the search procedure needs this to be able to retrieve
         full results, as those might be spread among more pages.
+        
         Args:
             start_position: position of start document that will be requested.
+        
         Returns:
             CorpusQuery object
         '''
@@ -87,8 +95,10 @@ class CorpusQuery(GeneralQuery):
     def metadata_filter(self, metadata_filter):
         '''
         Set metadata fields to filter results set on. If method is FCS, results will be filtered after the request. For Blacklab, filtered results will be requested from the server.
+        
         Args:
             metadata_filter: Dictionary of conditions. The key represents the column to be filtered. If the value is a string, the value will be matched exactly. If the value is a list, it will be interpreted as a numerical interval.
+        
         Returns:
             CorpusQuery object
         '''
@@ -97,8 +107,10 @@ class CorpusQuery(GeneralQuery):
     def method(self, method):
         '''
         Set method to make request
+
         Args:
             method: fcs (Federated Content Search) or blacklab
+
         Returns:
             CorpusQuery object
         '''
@@ -107,6 +119,7 @@ class CorpusQuery(GeneralQuery):
     def search(self):
         '''
         Request results matching a corpus search query
+
         Returns:
             CorpusQuery object
         
@@ -216,6 +229,7 @@ class CorpusQuery(GeneralQuery):
     def xml(self):
         '''
         Get the XML response (unparsed) of a treebank search
+        
         Returns:
             XML string
         '''
@@ -227,6 +241,7 @@ class CorpusQuery(GeneralQuery):
     def kwic(self):
         '''
         Get the Pandas DataFrame with one keyword in context (KWIC) per row
+        
         Returns:
             Pandas DataFrame
         '''
@@ -238,8 +253,10 @@ class CorpusQuery(GeneralQuery):
 def create_corpus(name):
     '''
     API constructor
+    
     Args:
         name: corpus name
+    
     Returns:
         CorpusQuery object
     
@@ -251,6 +268,7 @@ def create_corpus(name):
 def get_available_corpora(exclude=[]):
     '''
     This function returns the list of the available corpora
+    
     Returns:
         list of corpus name strings
     '''

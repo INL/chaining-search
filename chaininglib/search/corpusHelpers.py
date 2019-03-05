@@ -1,3 +1,5 @@
+
+
 import pandas as pd
 import requests
 from collections import defaultdict
@@ -13,6 +15,7 @@ def _create_lucene_metadata_filter(filter_dict):
     
     Args:
         filter_dict: Dictionary of conditions. The key represents the column to be filtered. If the value is a string, the value will be matched exactly. If the value is a list, it will be interpreted as a numerical interval.
+    
     Returns:
         Lucene metadata filter, which can be included in query to Blacklab server
     '''
@@ -43,6 +46,7 @@ def _create_pandas_metadata_filter(df, filter_dict):
     Args:
         df: Pandas DataFrame on which the resulting filter of this method will be applied. The DataFrame is used to construct the Pandas filter: the filter will be DataFrame-specific.
         filter_dict: Dictionary of conditions. The key represents the column to be filtered. If the value is a string, the value will be matched exactly. If the value is a list, it will be interpreted as a numerical interval.
+    
     Returns:
         Pandas DataFrame filter, which can be applied to df
     
@@ -79,6 +83,7 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         detailed_context: (optional) True to parse the layers of all tokens, False to limit detailed parsing to hits
         extra_fields_doc: extra document metadata fields to add to the results, if needed
         extra_fields_token: extra token layers to add to the results, if needed
+    
     Returns:
         df: a Pandas DataFrame representing the parse results
         next_pos: the next result to be parsed (since the results might be spread among several XML response pages), 

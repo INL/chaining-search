@@ -22,6 +22,7 @@ class LexiconQuery(GeneralQuery):
     def search(self):
         '''
         Perform a lexicon search 
+
         Returns:
             LexiconQuery object
         
@@ -72,6 +73,7 @@ class LexiconQuery(GeneralQuery):
     def json(self):
         '''
         Get the JSON response (unparsed) of a lexicon search
+
         Returns:
             JSON string
         '''
@@ -83,6 +85,7 @@ class LexiconQuery(GeneralQuery):
     def kwic(self):
         '''
         Get the keyword in context (KWIC) results (as Pandas DataFrame) of a lexicon search
+
         Returns:
             Pandas DataFrame
         
@@ -110,6 +113,7 @@ class LexiconQuery(GeneralQuery):
 def create_lexicon(name):
     '''
     API constructor
+
     Returns:
         LexiconQuery object
     
@@ -122,6 +126,7 @@ def create_lexicon(name):
 def get_available_lexica():
     '''
     This function returns the list of the available lexica
+    
     Returns:
         list of lexicon name strings
     '''

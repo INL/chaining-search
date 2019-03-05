@@ -19,3 +19,7 @@ jupyter nbextensions_configurator enable --sys-prefix
 jupyter nbextension enable collapsible_headings/main
 # Kernel is configured to work with the virtual environment
 python3 -m ipykernel install --user --name env
+
+# Compile documentation
+cd doc
+make html

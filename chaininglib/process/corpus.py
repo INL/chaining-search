@@ -9,8 +9,10 @@ import pandas as pd
 def get_frequency_list(df_corpus):
     '''
     This function computes the raw frequency of lemmata in a DataFrame containing corpus data
+
     Args:
         df_corpus: a Pandas DataFrame with corpus data (it must contain at least one 'lemma' column)
+    
     Returns:
         a Pandas DataFrame with 'lemmata' as index, 'token count' a number of occurences per lemma, 
         and 'rank' as ordinal position in the list of lemmata, based on the 'token count'.
@@ -52,11 +54,13 @@ def get_frequency_list(df_corpus):
 def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wordformColumnName='word'):
     '''
     This method creates a lexicon from a list of corpus search results. Lemma, POS and word column names from the corpus results are also used for the resulting lexicon
+    
     Args:
         dfs_corpus: list of Pandas DataFrames with search results from different corpora
         lemmaColumnName: column name for lemma in dfs_corpus
         posColumnName: column name for part-of-speech in dfs_corpus
         wordformColumnName: column name for word form in dfs_corpus
+
     Returns:
         a Pandas DataFrame representing a lexicon, with lemmaColumnName, posColumnName and wordformColumnName as columns
     '''
@@ -123,8 +127,10 @@ def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wo
 def get_tagger(dfs_corpus, word_key="word", pos_key="universal_dependency"):
     '''
     This function instantiates a tagger trained with some corpus annotations 
+
     Args:
         dfs_corpus: one (or a list of) Pandas DataFrame(s) with annotated corpus data
+    
     Returns:
         a PerceptronTagger instance 
     

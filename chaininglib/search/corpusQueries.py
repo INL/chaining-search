@@ -1,10 +1,12 @@
 def corpus_query(lemma=None, word=None, pos=None):
     '''
-    This function builds a query for getting occurances of a given lemma within a given corpus
+    This function builds a query for getting occurances of a given lemma within a given corpus.
+
     Args:
         lemma: a lemma to look for
         word: word form to look for
         pos: POS tag to look for
+    
     Returns:
         a corpus query string
         
