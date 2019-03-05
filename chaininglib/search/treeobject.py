@@ -53,7 +53,7 @@ class TreeObject:
 
     
     def addPart(self, part):        
-        self._parts.append(part);
+        self._parts.append(part)
     def getParts(self):        
         return self._parts
         
@@ -77,6 +77,9 @@ class TreeObject:
             
     def toLayers(self):
         '''
+        Transform the tree object into a list of list of strings per annotation layer
+        Returns:
+            List, consisting of list of strings per layer
         '''
         layers_str = self._getLayersStr()        
         
