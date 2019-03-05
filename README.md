@@ -90,6 +90,10 @@ As a final step in the Command prompt, install the dependencies:
 pip install ipykernel
 ipython kernel install --user --name=env
 pip3 install -r requirements.txt
+jupyter contrib nbextension install --sys-prefix
+jupyter nbextensions_configurator enable --sys-prefix
+jupyter nbextension enable collapsible_headings/main
+python -m ipykernel install --user --name env
 ``` 
 
 ## Step  4
