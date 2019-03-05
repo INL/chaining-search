@@ -1,3 +1,5 @@
+import re
+
 def treebank_query(lemma=None, word=None, pos=None):
     '''
     This function builds a query for getting occurances of a given lemma within a given treebank
@@ -10,9 +12,9 @@ def treebank_query(lemma=None, word=None, pos=None):
     Returns:
         a treebank query string
         
-    >>> lemma_query = corpus_query(lemma="lopen")
-    >>> df_corpus = create_corpus("chn").pattern(lemma_query).kwic()
-    >>> display(df_corpus)
+    >>> tb = create_treebank().word("kat")
+    >>> df_trees = tb.kwic()
+    >>> display(df_trees)
     '''
     
     parts = []
@@ -21,8 +23,16 @@ def treebank_query(lemma=None, word=None, pos=None):
         parts.append( r'@root="'+ lemma + r'"' )
     if word is not None:
         parts.append( r'@word="'+ word + r'"' )
+        
+    # if no features are provided, we need to query for pos in 'pt', with the query string in lower case
+    # but if we do have features, we'll be searching for pos in 'postag' (no need for lower case there)
+    
     if pos is not None:
-        parts.append( r'@pt="'+ pos + r'"' )
+        if (re.match("^[A-Za-z]+$", pos)):
+            parts.append( r'@pt="'+ pos.lower() + r'"' )
+        else:
+            parts.append( r'@postag="'+ pos + r'"' )
+            
     return r'xquery //node[' + r' and '.join(parts) + r']'
 
 

@@ -68,7 +68,7 @@ class TreeObject:
         
             partsArr = []
             for onePart in self._parts:
-                partsArr.append( onePart.toString() )
+                partsArr.append( onePart.toString( posTag ) )
                 
             return ' [ ' + (' '.join(partsArr)) + ' ]/'+self._cat
             
@@ -79,7 +79,7 @@ class TreeObject:
         '''
         Transform the tree object into a list of list of strings per annotation layer
         Returns:
-            List, consisting of list of strings per layer
+            List, consisting of lists of strings per layer
         '''
         layers_str = self._getLayersStr()        
         
