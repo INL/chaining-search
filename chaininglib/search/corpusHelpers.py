@@ -98,6 +98,8 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
 
     # collect metadata for all documents
     docInfos = root.find("docInfos")
+    if docInfos is None:
+        raise ValueError("Returned response has unexpected structure: " + text)
     for docInfo in docInfos.findall("docInfo"):
         pid = docInfo.get("pid")
         for field in docInfo:
