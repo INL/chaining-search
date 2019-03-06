@@ -45,6 +45,11 @@ pip install tornado==5.1.1
 
 
 
-echo Run the Jupyter notebook!
+echo Compile documentation
+cd doc
+make html
 
-jupyter notebook
+
+echo Done. Type 'run' to start your jupyter notebook
+
+cd ..
