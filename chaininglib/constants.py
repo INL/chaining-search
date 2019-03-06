@@ -1,22 +1,20 @@
 import pandas as pd
 
+# AVAILABLE_CORPORA = {'chn':{'blacklab_url':'http://svprmc05.inl.nl/blacklab-server/chn', 'default_method':'blacklab'},
+#                      'opensonar':{'blacklab_url':'http://172.16.10.93:8080/blacklab-server/opensonar', 'default_method':'blacklab'},
+#                      'zeebrieven':{'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/zeebrieven','default_method':'blacklab'}, # 'http://svprmc20.ivdnt.org/blacklab-server/zeebrieven',
+#                      'gysseling':{'blacklab_url':'http://svprmc20.ivdnt.org/blacklab-server/gysseling', 'default_method':'blacklab'},
+#                      'nederlab':{'default_method':'fcs'}}
 
-# AVAILABLE_CORPORA = {'chn':'http://svprmc05.inl.nl/blacklab-server/chn',
-#                      'opensonar':'http://172.16.10.93:8080/blacklab-server/opensonar',
-#                      'zeebrieven':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/zeebrieven', # 'http://svprmc20.ivdnt.org/blacklab-server/zeebrieven',
-#                      'gysseling':'http://svprmc20.ivdnt.org/blacklab-server/gysseling',
-# 'nederlab':''}
+AVAILABLE_CORPORA = {'zeebrieven':{'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/zeebrieven','default_method':'blacklab'},
+                     'gysseling':{'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/gysseling', 'default_method':'blacklab'}}
 
-AVAILABLE_CORPORA = {'chn':{'blacklab_url':'http://svprmc05.inl.nl/blacklab-server/chn', 'default_method':'blacklab'},
-                     'opensonar':{'blacklab_url':'http://172.16.10.93:8080/blacklab-server/opensonar', 'default_method':'blacklab'},
-                     'zeebrieven':{'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/zeebrieven','default_method':'blacklab'}, # 'http://svprmc20.ivdnt.org/blacklab-server/zeebrieven',
-                     'gysseling':{'blacklab_url':'http://svprmc20.ivdnt.org/blacklab-server/gysseling', 'default_method':'blacklab'},
-                     'nederlab':{'default_method':'fcs'}}
-AVAILABLE_LEXICA = {'anw':'http://172.16.4.56:8890/sparql', 
-                    'celex':'http://172.16.4.56:8890/sparql', 
-                    'diamant':'http://svprre02:8080/fuseki/tdb/sparql', 
-                    'duelme':'http://172.16.4.56:8890/sparql', 
-                    'molex':'http://172.16.4.56:8890/sparql'}
+
+AVAILABLE_LEXICA = {'anw':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
+                    'celex':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
+                    'diamant':{"sparql_url":'http://svprre02:8080/fuseki/tdb/sparql', "method":"sparql"}, 
+                    'duelme':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
+                    'molex':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}}
 
 RECORDS_PER_PAGE = 1000
 FCS_URL = "http://portal.clarin.inl.nl/fcscorpora/clariah-fcs-endpoints/sru?operation=searchRetrieve&queryType=fcs"

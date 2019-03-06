@@ -37,34 +37,44 @@ class LexiconQuery(GeneralQuery):
         if self._lemma is None and self._pos is None:
             raise ValueError('A lemma and/or a part-of-speech is required')
             
-        # build query
-        query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._resource)
             
         # show wait indicator, so the user knows what's happening
         status.show_wait_indicator('Searching '+self._resource)
 
-        # default endpoint, except when diamant is invoked
-        endpoint = constants.AVAILABLE_LEXICA[self._resource]        
+        lexicon_settings = constants.AVAILABLE_LEXICA[self._resource]
 
-        try:
-            # Accept header is needed for virtuoso, it isn't otherwise!
-            response = requests.post(endpoint, data={"query":query}, headers = {"Accept":"application/sparql-results+json"})
+        if lexicon_settings["method"]=="sparql":
+            # default endpoint, except when diamant is invoked
+            endpoint = lexicon_settings[self._resource]["sparql_url"]
+
+            # build query
+            query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._resource)
+
+            try:
+                # Accept header is needed for virtuoso, it isn't otherwise!
+                response = requests.post(endpoint, data={"query":query}, headers = {"Accept":"application/sparql-results+json"})
+            except Exception as e:
+                status.remove_wait_indicator()
+                raise ValueError("An error occured when searching lexicon " + self._resource + ": "+ str(e))
 
             response_json = json.loads(response.text)
             records_json = response_json["results"]["bindings"]
-            records_string = json.dumps(records_json)    
+            records_string = json.dumps(records_json)
             
-            # remove wait indicator, 
-            status.remove_wait_indicator()
-            
-            self._search_performed = True
+            # _df_kwic is assigned instead of appended, so kwic() can be called multiple times
+            self._df_kwic = pd.read_json(records_string, orient="records")
+            # make sure cells containing NULL are added too, otherwise we'll end up with ill-formed data
+            # CAUSES MALFUNCTION: df = df.fillna('')
+            self._df_kwic = self._df_kwic.applymap(lambda x: '' if pd.isnull(x) else x["value"])  
+        
+        # remove wait indicator, 
+        status.remove_wait_indicator()
+        
+        self._search_performed = True
 
-            # object enriched with response
-            return self._copyWith('_response', records_string)
+        # object enriched with response
+        return self._copyWith('_response', records_string)
            
-        except Exception as e:
-            status.remove_wait_indicator()
-            raise ValueError("An error occured when searching lexicon " + self._resource + ": "+ str(e))
     
     
 
@@ -96,16 +106,6 @@ class LexiconQuery(GeneralQuery):
         '''
         
         self.check_search_performed()
-
-        records_string = self.json()
-        
-        # _df_kwic is assigned instead of appended, so kwic() can be called multiple times
-        self._df_kwic = pd.read_json(records_string, orient="records")
-
-        # make sure cells containing NULL are added too, otherwise we'll end up with ill-formed data
-        # CAUSES MALFUNCTION: df = df.fillna('')
-        self._df_kwic = self._df_kwic.applymap(lambda x: '' if pd.isnull(x) else x["value"])  
-
         return self._df_kwic
     
     

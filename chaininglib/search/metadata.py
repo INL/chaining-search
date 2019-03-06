@@ -3,6 +3,8 @@ import chaininglib.constants as constants
 import re
 import requests
 
+from chaininglib.search.lexiconQueries import lexicon_query
+
 
 def get_available_metadata(resource_name, resource_type=None):   
     '''
@@ -12,7 +14,14 @@ def get_available_metadata(resource_name, resource_type=None):
         resource_name: Name of the lexicon or corpus
         resource_type: (optional) One of 'lexicon' or 'corpus'. Can be used to disambiguate when resource name can be both a lexicon or corpus
     Returns:
-        A list of metadata fields
+        A dictionary of lists of document and token metadata (corpus) or a list of metadata fields (lexicon)
+    
+    >>> corpus_metadata = get_available_metadata("zeebrieven")
+    >>> print(corpus_metadata)
+    >>> {'document': ['aantal_paginas', 'aantal_woorden', ...,  'witnessYear_from', 'witnessYear_to'], 'token': ['word', 'lemma', 'pos', 'punct', 'starttag']}
+    >>> lexicon_metadata = get_available_metadata("molex")
+    >>> print(lexicon_metadata)
+    >>> ['lemEntryId', 'lemma', 'lemPos', 'wordformId', 'wordform', 'hyphenation', 'wordformPos', 'Gender', 'Number']
     '''
     
     # Infer resource type from name
@@ -68,7 +77,7 @@ def _parse_blacklab_metadata(text):
     Args:
         text: the XML response of a lexicon/corpus search, as a string
     Returns:
-        A dictionary of with lists of document and token metadata
+        A dictionary of lists of document and token metadata
     '''
     
     # TODO: should we secure against untrusted XML?

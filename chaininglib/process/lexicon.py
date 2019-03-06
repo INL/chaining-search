@@ -16,6 +16,7 @@ def get_diamant_synonyms(df):
     >>> df_lexicon = create_lexicon(lexicon).word(search_word).kwic()
     >>> syns = diamant_get_synonyms(df_lexicon) 
     >>> display( 'Synoniemen voor ' + search_word + ': ' + ", ".join(syns)))
+    
     '''
     
     dfops.check_valid_df("get_diamant_synonyms", df)

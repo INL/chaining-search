@@ -18,6 +18,9 @@ def _create_lucene_metadata_filter(filter_dict):
     
     Returns:
         Lucene metadata filter, which can be included in query to Blacklab server
+    
+    >>> _create_lucene_metadata_filter(df, {"author":"P.C. Hooft", "witnessYear_from":[1700,1800]})
+
     '''
     filter_string = ""
     for i, feature_name in enumerate(filter_dict):
@@ -51,6 +54,7 @@ def _create_pandas_metadata_filter(df, filter_dict):
         Pandas DataFrame filter, which can be applied to df
     
     >>> _create_pandas_metadata_filter(df, {"author":"P.C. Hooft", "witnessYear_from":[1700,1800]})
+
     '''
     i = 0
     for feature_name in filter_dict:
@@ -88,6 +92,10 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         df: a Pandas DataFrame representing the parse results
         next_pos: the next result to be parsed (since the results might be spread among several XML response pages), 
         or 0 if there is no page left to be parsed
+    
+    >>> md = get_available_metadata("zeebrieven")
+    >>> df, next_pos = _parse_xml_blacklab(response_text_from_server, detailed_context=False, extra_fields_doc=["author","witnessYear_from"], extra_fields_token=md["token"])
+    
     '''
     # TODO: should we secure against untrusted XML?
     root = ET.fromstring(text)
@@ -204,6 +212,10 @@ def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fiel
         df: a Pandas DataFrame representing the parse results
         next_pos: the next result to be parsed (since the results might be spread among several XML response pages), 
         or 0 if there is no page left to be parsed
+    
+    >>> md = get_available_metadata("zeebrieven")
+    >>> df, next_pos = _parse_xml_fcs(response_text_from_server, detailed_context=False, extra_fields_doc=["author","witnessYear_from"], extra_fields_token=md["token"])
+    
     '''
     
     # TODO: should we secure against untrusted XML?

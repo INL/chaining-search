@@ -16,6 +16,10 @@ def get_frequency_list(df_corpus):
     Returns:
         a Pandas DataFrame with 'lemmata' as index, 'token count' a number of occurences per lemma, 
         and 'rank' as ordinal position in the list of lemmata, based on the 'token count'.
+    
+    >>> df_corpus = create_corpus("gysseling").lemma("boef").search().kwic()
+    >>> df_freq_list = get_frequency_list(df_corpus)
+
     '''
     # get a list of the columns named 'lemma...' 
     all_col_names = list(df_corpus.columns.values)
@@ -63,6 +67,10 @@ def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wo
 
     Returns:
         a Pandas DataFrame representing a lexicon, with lemmaColumnName, posColumnName and wordformColumnName as columns
+
+    >>> dfs_corpus = [df_results_corpus1, df_results_corpus2]
+    >>> lexicon = extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wordformColumnName='word')
+
     '''
     print("extracting lexicon...")
     
