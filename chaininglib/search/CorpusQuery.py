@@ -213,6 +213,7 @@ class CorpusQuery(GeneralQuery):
                     df = df[filters]
             
             # Append new entries (df) to existing dataframe (self._df_kwic): this is relevant if calling this function for multiple search queries
+            df = df.fillna("")
             df = self._df_kwic.append(df, ignore_index=True)
             
             self._search_performed = True

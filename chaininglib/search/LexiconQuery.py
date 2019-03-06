@@ -45,7 +45,7 @@ class LexiconQuery(GeneralQuery):
 
         if lexicon_settings["method"]=="sparql":
             # default endpoint, except when diamant is invoked
-            endpoint = lexicon_settings[self._resource]["sparql_url"]
+            endpoint = lexicon_settings["sparql_url"]
 
             # build query
             query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._resource)

@@ -28,7 +28,7 @@ DEFAULT_FIELDS_DOC_BL = []
 
 # For UI
 DEFAULT_QUERY = r'[lemma="boek"]'
-DEFAULT_CORPUS = "chn"
+DEFAULT_CORPUS = "zeebrieven"
 DEFAULT_SEARCHWORD = 'boek'
 DEFAULT_LEXICON = "diamant"
 

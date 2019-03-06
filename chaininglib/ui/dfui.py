@@ -130,6 +130,8 @@ def _display_single_df(df_column, label, mode):
     
     # chart mode
     if mode == 'chart':
+        for i in df_column:
+            print(i)
         plt.figure()
         df_column.plot.barh().set_title(label)
     
