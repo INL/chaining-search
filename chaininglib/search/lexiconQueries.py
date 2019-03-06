@@ -4,14 +4,14 @@ import chaininglib.utils.stringutils as stringutils
 def lexicon_query(word, pos, lexicon):
     '''
     This function builds a query for getting the paradigm etc. of a given lemma out of a given lexicon.
-    The resulting query string is to be used as a parameter of search_lexicon() 
+    The resulting query string is to be used in LexiconQuery.search() 
     
     Args:
         word: a lemma/wordform to build the query with
         pos: a part-of-speech to build the query with
         lexicon: a lexicon to build the query for
     Returns:
-        a query string to be used as a parameter of search_lexicon() 
+        a query string to be used as a parameter of pattern() 
     '''
   
     if word is None:

@@ -64,16 +64,21 @@ class TreeObject:
     
     def extract(self, filiation_arr): 
         '''
-        Extract some constituent out of the trees, given a filiation path.
-        For example, in order to get the nouns which occur in prepositional complements within trees,
-        one could type:
+        Extract some constituents out of the trees, given a filiation path declared as a list. 
+        This list must consist of parts-of-speech or grammatical categories, put in hierarchical order, 
+        from the top element to the leaf we are looking for. 
+        
+        So, let's say we're looking for nouns (N) which must be part of prepositional phrases, the filiation 
+        path must be like ['pp', 'N'].
+        The same way, if we search for nouns, which must be part of adjectival phrases (ap), which in turn
+        must be part of prepositional phrases, the filiation path must be ['pp', 'ap', 'N']. 
         
         >>> tbq = create_treebank().pattern(some_pattern).search()
         >>> trees = tbq.trees()
         >>> 
         >>> list_of_nouns = []
         >>> for tree in trees:
-        >>>     nouns = tree.extract(['pp', 'N'])  # preposition phrase (pp), with some noun (N) in it.
+        >>>     nouns = tree.extract(['pp', 'N'])  # a noun (N), which is part of a preposition phrase (pp).
         >>>     list_of_nouns = list_of_nouns + nouns
         >>>     
         >>> display(list_of_nouns)
@@ -109,21 +114,21 @@ class TreeObject:
    
     def toString(self, posTag=False, catTag=True):        
         '''
-        Transform the tree object into a String representation of it
+        Transform the tree object into a String representation of it (see example)
         Args:
-            posTag: (default False) display parts-of-speech tags
-            catTag: (default True) display categorial tags
+            posTag: (default False) display parts-of-speech tags (leaves)
+            catTag: (default True) display categorial tags (non leaves)
         Returns:
             List, consisting of lists of strings per layer
             
         >>> tbq = create_treebank().pattern(some_pattern).search()
         >>> trees = tbq.trees()
         >>> for tree in trees:            
-        >>>    display(tree.toLayers())
-        >>>
-        >>> '[ we nu prijzen geven ]/ssub'
+        >>>    display(tree.toString())
+        >>>        
         >>> '[ elkaar verrijking geven ]/inf'
         >>> '[ [ Gods liefde ]/np gestalte geven ]/inf'
+        >>> etc
         '''
         
         if len(self._parts) == 0:
@@ -142,7 +147,7 @@ class TreeObject:
             
     def toLayers(self):
         '''
-        Transform the tree object into a list of list of strings per annotation layer
+        Transform the tree object into a list of lists of strings per annotation layer (see example)
         Returns:
             List, consisting of lists of strings per layer
             
@@ -157,6 +162,7 @@ class TreeObject:
         >>>  ['', '', ''],
         >>>  ['eer', 'N(soort,ev,basis,dat)', 'ere'],
         >>>  ['toekomen', 'WW(pv,tgw,met-t)', 'toekomt']]
+        >>> etc
             
         '''
         tokens_str = self._getLayersStr()        

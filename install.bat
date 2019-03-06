@@ -10,10 +10,6 @@ echo Set environment variable permanently
 setx PATH "%PATH%;%UserProfile%\AppData\Local\Programs\Python\Python37\Scripts\"
 setx PATH "%PATH%;%UserProfile%\AppData\Local\Programs\Python\Python37\"
 
-rem echo Set environment variable for current session too!
-rem set PATH "%PATH%;%UserProfile%\AppData\Local\Programs\Python\Python37\Scripts\"
-rem set PATH "%PATH%;%UserProfile%\AppData\Local\Programs\Python\Python37\"
-
 
 
 echo Install the Python package manager

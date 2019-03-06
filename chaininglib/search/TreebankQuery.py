@@ -28,7 +28,7 @@ class TreebankQuery(GeneralQuery):
         Returns:
             TreebankQuery object
         
-        >>> # build a corpus search query
+        >>> # build a treebank search query
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
 
         '''
@@ -82,6 +82,9 @@ class TreebankQuery(GeneralQuery):
         Get the XML response (unparsed) of a treebank search 
         Returns:
             XML string
+            
+        >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
+        >>> xml_response = treebank_obj.xml()
         '''
         self.check_search_performed()
 
@@ -99,9 +102,7 @@ class TreebankQuery(GeneralQuery):
         Returns:
             Pandas DataFrame
         
-        >>> # build a corpus search query
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
-        >>> # get the results as table of kwic's
         >>> df = treebank_obj.kwic()
         '''
         
@@ -194,12 +195,10 @@ class TreebankQuery(GeneralQuery):
         '''
         Get results (as nested objects) matching a treebank search query
         Returns:
-            tree object
+            list of tree objects
         
-        >>> # build a corpus search query
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
-        >>> # get the results as nested objects
-        >>> df = treebank_obj.trees()
+        >>> list_of_trees = treebank_obj.trees()
         '''
         
         self.check_search_performed()

@@ -61,9 +61,9 @@ def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wo
     
     Args:
         dfs_corpus: list of Pandas DataFrames with search results from different corpora
-        lemmaColumnName: column name for lemma in dfs_corpus
-        posColumnName: column name for part-of-speech in dfs_corpus
-        wordformColumnName: column name for word form in dfs_corpus
+        lemmaColumnName: (default 'lemma') column name for lemma in dfs_corpus
+        posColumnName: (default 'pos') column name for part-of-speech in dfs_corpus
+        wordformColumnName: (default 'word') column name for word form in dfs_corpus
 
     Returns:
         a Pandas DataFrame representing a lexicon, with lemmaColumnName, posColumnName and wordformColumnName as columns
@@ -134,10 +134,12 @@ def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wo
 
 def get_tagger(dfs_corpus, word_key="word", pos_key="universal_dependency"):
     '''
-    This function instantiates a tagger trained with some corpus annotations 
+    This function instantiates a tagger trained with some corpus annotations (out of a DataFrame)
 
     Args:
         dfs_corpus: one (or a list of) Pandas DataFrame(s) with annotated corpus data
+        word_key: (default 'word') column name for wordforms in dfs_corpus
+        pos_key: (default 'universal_dependency') column name for parts-of-speech in dfs_corpus
     
     Returns:
         a PerceptronTagger instance 

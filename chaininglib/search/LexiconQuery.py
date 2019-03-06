@@ -86,6 +86,11 @@ class LexiconQuery(GeneralQuery):
 
         Returns:
             JSON string
+            
+        >>> # build a lexicon search query
+        >>> lexicon_obj = create_lexicon(some_lexicon).lemma(some_lemma).search()
+        >>> # get the JSON response
+        >>> df = lexicon_obj.json()
         '''
         self.check_search_performed()
 

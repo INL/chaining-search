@@ -2,18 +2,18 @@ import re
 
 def treebank_query(lemma=None, word=None, pos=None):
     '''
-    This function builds a query for getting occurances of a given lemma within a given treebank
+    This function builds a query for getting occurances of a given lemma within a treebank
 
     Args:
         lemma: a lemma to look for
-        word: word form to look for
+        word: wordform to look for
         pos: POS tag to look for
         
     Returns:
         a treebank query string
         
     >>> tb = create_treebank().word("kat")
-    >>> df_trees = tb.kwic()
+    >>> df_trees = tb.search().kwic()
     >>> display(df_trees)
     '''
     
