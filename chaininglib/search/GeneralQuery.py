@@ -2,7 +2,7 @@ import copy
 import pandas as pd
 
 class GeneralQuery:
-    """ A query on a token-based corpus. """
+    """ A general query """
 
     def __init__(self, resource, pattern = None, lemma = None, word=None, pos=None):
         
@@ -23,7 +23,7 @@ class GeneralQuery:
 
     def pattern(self, p):
         '''
-        Set a corpus search pattern
+        Set a search pattern
 
         Args:
             p: pattern
@@ -35,7 +35,7 @@ class GeneralQuery:
     
     def lemma(self, l):
         '''
-        Set a lemma as part of a corpus search pattern
+        Set a lemma as part of a search pattern
 
         Args:
             l: lemma
@@ -47,7 +47,7 @@ class GeneralQuery:
     
     def word(self, w):
         '''
-        Set a word form as part of a corpus search pattern
+        Set a word form as part of a search pattern
 
         Args:
             w: word form
@@ -59,7 +59,7 @@ class GeneralQuery:
     
     def pos(self, p):
         '''
-        Set a part-of-speech as part of a corpus search pattern
+        Set a part-of-speech as part of a search pattern
 
         Args:
             p: part-of-speech (POS) tag

@@ -85,7 +85,7 @@ class CorpusQuery(GeneralQuery):
         full results, as those might be spread among more pages.
         
         Args:
-            start_position: position of start document that will be requested.
+            start_position: result page number to be requested.
         
         Returns:
             CorpusQuery object
@@ -126,7 +126,7 @@ class CorpusQuery(GeneralQuery):
         >>> # build a corpus search query
         >>> corpus_obj = create_corpus(some_corpus).pattern(some_pattern)
         >>> # get the results
-        >>> df = corpus_obj.kwic()
+        >>> df = corpus_obj.search().kwic()
         '''
 
         if self._pattern_given:
@@ -225,19 +225,25 @@ class CorpusQuery(GeneralQuery):
             status.remove_wait_indicator()
             raise ValueError("An error occured when searching corpus " + self._resource + ": "+ str(e))
     
+    
+    
     # OUTPUT
 
     def xml(self):
         '''
-        Get the XML response (unparsed) of a treebank search
+        Get the XML response (unparsed) of a Corpus search
         
         Returns:
             XML string
+            
+        >>> corpus_obj = create_corpus(some_corpus).pattern(some_pattern)
+        >>> xml = corpus_obj.search().xml()
         '''
         self.check_search_performed()
         if self._method == "fcs" and self._metadata_filter:
             raise ValueError("Retrieving xml not possible for method FCS in combination with metadata filters. Remove metadata filter and try again.")
         return "\n".join(self._response)
+    
     
     def kwic(self):
         '''
@@ -262,7 +268,7 @@ def create_corpus(name):
         CorpusQuery object
     
     >>> corpus_obj = create_corpus(some_corpus).pattern(some_pattern)
-    >>> df = corpus_obj.kwic()
+    >>> df = corpus_obj.search().kwic()
     '''
     return CorpusQuery(name)
 
@@ -272,5 +278,10 @@ def get_available_corpora(exclude=[]):
     
     Returns:
         list of corpus name strings
+        
+    >>> # get list of corpora at our disposal and query each of them
+    >>> for one_corpus in get_available_corpora(exclude=["nederlab"]):
+    >>>     c = create_corpus(one_corpus).lemma("woordenboek").detailed_context(True).search()
+    >>>     df_corpus = c.kwic() 
     '''
     return [x for x in list(constants.AVAILABLE_CORPORA.keys()) if x not in exclude]
