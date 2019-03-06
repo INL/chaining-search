@@ -39,5 +39,3 @@ call .\doc\make html
 
 
 echo Done. Type 'run' to start your jupyter notebook
-
-cd ..
