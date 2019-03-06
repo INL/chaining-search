@@ -1,17 +1,5 @@
 
 
-echo Download and install python
-
-powershell -command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; (New-Object Net.WebClient).DownloadFile('https://www.python.org/ftp/python/3.7.2/python-3.7.2-amd64.exe', 'python-3.7.2-amd64.exe') }"
-
-python-3.7.2-amd64.exe /quiet
-
-echo Set environment variable permanently
-setx PATH "%PATH%;%UserProfile%\AppData\Local\Programs\Python\Python37\Scripts\"
-setx PATH "%PATH%;%UserProfile%\AppData\Local\Programs\Python\Python37\"
-
-
-
 echo Install the Python package manager
 
 python -m pip install -U pip
@@ -46,10 +34,8 @@ pip install tornado==5.1.1
 
 
 echo Compile documentation
-cd doc
-make html
+
+call .\doc\make html
 
 
 echo Done. Type 'run' to start your jupyter notebook
-
-cd ..
