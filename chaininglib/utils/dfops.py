@@ -20,7 +20,7 @@ def check_valid_df(function_name, obj):
     Returns:
         N/A
     '''
-    if not (isinstance(obj, pd.DataFrame) or isinstance(obj, pd.Series) or isinstance(obj, pd.core.groupby.generic.DataFrameGroupBy)):
+    if not (isinstance(obj, pd.DataFrame) or isinstance(obj, pd.Series)):
         raise ValueError(function_name+"() requires a Pandas DataFrame as argument. You might have forgotten to use object.kwic().")
 
         

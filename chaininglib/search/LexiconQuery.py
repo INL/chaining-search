@@ -37,14 +37,15 @@ class LexiconQuery(GeneralQuery):
         if self._lemma is None and self._pos is None:
             raise ValueError('A lemma and/or a part-of-speech is required')
             
-            
+        # Reset self._df_kwic, from previous calls of search()
+        self._df_kwic = pd.DataFrame()
         # show wait indicator, so the user knows what's happening
         status.show_wait_indicator('Searching '+self._resource)
 
         lexicon_settings = constants.AVAILABLE_LEXICA[self._resource]
+        method = lexicon_settings["method"]
 
-        if lexicon_settings["method"]=="sparql":
-            # default endpoint, except when diamant is invoked
+        if method=="sparql":
             endpoint = lexicon_settings["sparql_url"]
 
             # build query
@@ -65,7 +66,38 @@ class LexiconQuery(GeneralQuery):
             self._df_kwic = pd.read_json(records_string, orient="records")
             # make sure cells containing NULL are added too, otherwise we'll end up with ill-formed data
             # CAUSES MALFUNCTION: df = df.fillna('')
-            self._df_kwic = self._df_kwic.applymap(lambda x: '' if pd.isnull(x) else x["value"])  
+            self._df_kwic = self._df_kwic.applymap(lambda x: '' if pd.isnull(x) else x["value"])
+        elif method=="lexicon_service":
+            query_url = constants.LEXICON_SERVICE_URL + "&database=" + self._resource
+
+            if not self._lemma:
+                raise ValueError("For this lexicon, a lemma is necessary!")
+            query_url += "&lemma=" + self._lemma
+            if self._pos:
+                query_url += "&pos=" + self._pos
+            try:
+                response = requests.get(query_url, headers = {"Accept":"application/json"})
+            except Exception as e:
+                status.remove_wait_indicator()
+                raise ValueError("An error occured when searching lexicon " + self._resource + ": "+ str(e))
+
+            response_json = json.loads(response.text)
+            records_json = response_json["wordforms_list"]
+            records_string = json.dumps(records_json)
+            
+            # _df_kwic is assigned instead of appended, so kwic() can be called multiple times
+            
+            for query_result in records_json:
+                query_result_string = json.dumps(query_result)
+                df_query_result = pd.read_json(query_result_string)
+                self._df_kwic = self._df_kwic.append(df_query_result, ignore_index=True)
+            self._df_kwic = self._df_kwic.rename(columns={"found_wordforms":"wordform"})
+            
+            # make sure cells containing NULL are added too, otherwise we'll end up with ill-formed data
+            # CAUSES MALFUNCTION: df = df.fillna('')
+            #self._df_kwic = self._df_kwic.applymap(lambda x: '' if pd.isnull(x) else x["value"])
+        else:
+            raise ValueError("Unknown lexicon search method: " + method)
         
         # remove wait indicator, 
         status.remove_wait_indicator()

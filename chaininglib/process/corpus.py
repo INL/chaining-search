@@ -6,7 +6,7 @@ import pandas as pd
 # However the functions in this file aim to manipulate DataFrames with corpus data, 
 # whereas the functions in dfops are more general
 
-def get_frequency_list(df_corpus):
+def get_frequency_list(df_corpus, column_name="lemma"):
     '''
     This function computes the raw frequency of lemmata in a DataFrame containing corpus data
 
@@ -23,10 +23,10 @@ def get_frequency_list(df_corpus):
     '''
     # get a list of the columns named 'lemma...' 
     all_col_names = list(df_corpus.columns.values)
-    lemma_col_names = [x for x in set(all_col_names) if str(x).startswith("lemma")]
+    lemma_col_names = [x for x in set(all_col_names) if str(x).startswith(column_name)]
     
     if len(lemma_col_names) == 0:
-        raise ValueError("function get_frequency_list() was called with a DataFrame which doesn't contain any 'lemma' column. If needed, rename the relevant column of your DataFrame into 'lemma'.")
+        raise ValueError("function get_frequency_list() was called with a DataFrame which doesn't contain any '%s' column. If needed, rename the relevant column of your DataFrame into '%s'." % (column_name, column_name))
     
     # instantiate a DataFrame with one single column 'lemmata',
     # in which we will gather all single lemmata occurences
@@ -39,12 +39,13 @@ def get_frequency_list(df_corpus):
         sub_df_corpus = df_corpus[col_name]
         df_lemmata_list = pd.concat( [df_lemmata_list, sub_df_corpus] )
         
-    df_lemmata_list.columns=["lemmata"]
+    column_name_plural = column_name + "s"
+    df_lemmata_list.columns=[column_name_plural]
         
     # Use the property_freq to compute a frequency list
-    df_frequency_list = property_freq(df_lemmata_list, "lemmata")    
+    df_frequency_list = property_freq(df_lemmata_list, column_name_plural)    
     # set the lemmata column to be the index
-    df_frequency_list.set_index("lemmata")
+    df_frequency_list.set_index(column_name_plural)
     
     # final step: compute ranks
     # this is needed to be able to compare different frequency lists 
