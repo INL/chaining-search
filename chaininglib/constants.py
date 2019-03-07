@@ -37,7 +37,7 @@ DEFAULT_CORPUS = "zeebrieven"
 DEFAULT_SEARCHWORD = 'boek'
 DEFAULT_LEXICON = "diamant"
 
-ENABLE_WAIT_INDICATOR = False
+ENABLE_WAIT_INDICATOR = True
 
 # Get rid of ellipsis in display (otherwise relevant data might not be shown)
 pd.set_option('display.max_colwidth',1000)

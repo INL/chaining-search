@@ -1,6 +1,7 @@
 from nltk.tag.perceptron import PerceptronTagger
 from chaininglib.utils.dfops import property_freq, df_filter
 import pandas as pd
+import chaininglib.ui.status as status
 
 # beware: just like chaininglib.utils.dfops, this file contains function operating on DataFrames.
 # However the functions in this file aim to manipulate DataFrames with corpus data, 
@@ -21,6 +22,8 @@ def get_frequency_list(df_corpus, column_name="lemma"):
     >>> df_freq_list = get_frequency_list(df_corpus)
 
     '''
+    status.show_wait_indicator('Building frequency list')
+    
     # get a list of the columns named 'lemma...' 
     all_col_names = list(df_corpus.columns.values)
     lemma_col_names = [x for x in set(all_col_names) if str(x).startswith(column_name)]
@@ -51,6 +54,8 @@ def get_frequency_list(df_corpus, column_name="lemma"):
     # this is needed to be able to compare different frequency lists 
     # with each other (which we could achieve by computing a rank diff)
     df_frequency_list['rank'] = df_frequency_list['token count'].rank(ascending = False).astype(int)
+    
+    status.remove_wait_indicator()
     
     return df_frequency_list
 
@@ -193,10 +198,13 @@ def get_tagger(dfs_corpus, word_key="word", pos_key="universal_dependency"):
             for i in range(0, nr_of_words_per_sentence, 1):
                 word_idx = word_key+' '+str(i)
                 pos_idx = pos_key+' '+str(i)
-                tuple = ( row[word_idx], row[pos_idx] )
-                one_sentence.append( tuple )
-                if (row[word_idx] is None or row[pos_idx] is None):
-                    wrong = True
+                try:
+                    tuple = ( row[word_idx], row[pos_idx] )
+                    one_sentence.append( tuple )
+                    if (row[word_idx] is None or row[pos_idx] is None):
+                        wrong = True
+                except:
+                    raise ValueError("function get_tagger() expects corpus data with columns '%s' and '%s', but those columns could not be found. Please call the function with these extra paramters to declare which column your corpus data has instead: get_tagger(word_key='...', pos_key='...')." % (word_key, pos_key))
             if wrong is False:
                 sentences.append(one_sentence)
                 

@@ -128,23 +128,34 @@ class CorpusQuery(GeneralQuery):
         >>> # get the results
         >>> df = corpus_obj.search().kwic()
         '''
-
-        if self._pattern_given:
-            if self._lemma or self._word or self._pos:
-                raise ValueError('When a pattern (%s) is given, lemma (%s), word (%s) and/or pos (%s) cannot be supplied too. Redundant!' % (self._pattern_given, self._lemma, self._word, self._pos))
-            else:
-                # Use pattern supplied by user
-                self._pattern = copy.copy(self._pattern_given)
+        
+        # in case we have multiple patterns, get results for each of them and return those in a list
+        if type(self._pattern_given) is list:
+            patterns = copy.copy(self._pattern_given)
+            for one_pattern in patterns:
+                # Run search method for every pattern
+                # Results will get appended
+                self._pattern = one_pattern
+                self._pattern_given = one_pattern # otherwise infinite recursion!
+                self = self.search()
+                
+        # normal case: one single pattern
         else:
-            # Pattern will be built with lemma, word, pos
-            if self._lemma or self._word or self._pos:
-                self._pattern = corpusQueries.corpus_query(self._lemma, self._word, self._pos)
+            if self._pattern_given:
+                if self._lemma or self._word or self._pos:
+                    raise ValueError('When a pattern (%s) is given, lemma (%s), word (%s) and/or pos (%s) cannot be supplied too. Redundant!' % (self._pattern_given, self._lemma, self._word, self._pos))
+                else:
+                    # Use pattern supplied by user
+                    self._pattern = copy.copy(self._pattern_given)
             else:
-                # If nothing is given: complain
-                raise ValueError('A pattern OR a lemma/word/pos is required')
-        
-        
+                # Pattern will be built with lemma, word, pos
+                if self._lemma or self._word or self._pos:
+                    self._pattern = corpusQueries.corpus_query(self._lemma, self._word, self._pos)
+                else:
+                    # If nothing is given: complain
+                    raise ValueError('A pattern OR a lemma/word/pos is required')
 
+        
         
         # FCS starts counting at 1. Adjust 0 (default start position) to 1.
         # Other start positions, which are probably given deliberately, are left as is.
@@ -154,15 +165,7 @@ class CorpusQuery(GeneralQuery):
         # show wait indicator
         status.remove_wait_indicator()
         status.show_wait_indicator('Searching '+self._resource+ ' at result '+str(self._start_position))  
-         
-        # in case we have multiple patterns, get results for each of them and return those in a list
-        if type(self._pattern) is list:
-            patterns = copy.copy(self._pattern)
-            for one_pattern in patterns:
-                # Run search method for every pattern
-                # Results will get appended
-                self._pattern = one_pattern
-                self = self.search()
+        
 
         try:
             if self._method=="fcs":
@@ -187,6 +190,7 @@ class CorpusQuery(GeneralQuery):
                         "&filter=" + urllib.parse.quote_plus(lucene_filter) )
             else:
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
+                
             response = requests.get(url)
             response_text = response.text
             self._response.append(response_text)
@@ -194,6 +198,7 @@ class CorpusQuery(GeneralQuery):
                 df, next_page = corpusHelpers._parse_xml_fcs(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
             elif self._method=="blacklab":
                 df, next_page = corpusHelpers._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
+                
             # If there are next pages, call search_corpus recursively
             if next_page > 0:
                 self._start_position = next_page
