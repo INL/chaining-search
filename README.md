@@ -28,6 +28,15 @@ Chaining search can be easily installed using our install script. This will inst
  ```
  cd CHAINING\SEARCH\DIRECTORY
  ```
+ * If you don't have Python yet, install it now:
+ ```
+ python_install.bat
+ ```
+ * Close the command prompt after this (required!)
+
+Now we're ready to install our notebook:
+ * Open a command prompt (again: Windows key + R, then type "cmd").
+ * Change to the Chaining search directory (the directory where this README is located): 
  * Invoke the install script:
  ```
  install.bat
