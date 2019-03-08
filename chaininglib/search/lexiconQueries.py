@@ -1,7 +1,7 @@
 import chaininglib.utils.stringutils as stringutils
 
     
-def lexicon_query(word, pos, lexicon):
+def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
     '''
     This function builds a query for getting the paradigm etc. of a given lemma out of a given lexicon.
     The resulting query string is to be used in LexiconQuery.search() 
@@ -15,7 +15,14 @@ def lexicon_query(word, pos, lexicon):
     '''
   
     if word is None:
-        return _lexicon_query_alllemmata(lexicon, pos)
+        return _lexicon_query_alllemmata(lexicon, pos, sparql_limit, sparql_offset)
+    
+    limitPart = """"""
+    if sparql_limit is not None:
+        limitPart = """
+        LIMIT """ +  str(sparql_limit) + """
+        OFFSET """ + str(sparql_offset) + """
+        """
     
     if (lexicon=="anw"):
         # part-of-speech filter not supported for this lexicon
@@ -48,17 +55,20 @@ def lexicon_query(word, pos, lexicon):
                       OPTIONAL { ?lemId ontolex:canonicalForm ?lemCFId . 
                           ?lemCFId ontolex:writtenRepresentation ?writtenForm . }
                       """+subpart+"""
-                      }"""
+                      }
+                      """+limitPart
     elif (lexicon=="diamant"):
         # part-of-speech filter not supported for this lexicon
-        if (pos is not None and pos != ''):
-            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        #if (pos is not None and pos != ''):
+            #print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+      
         # exact or fuzzy search
         exactsearch = (not stringutils.containsRegex(word))
         subpart1 = """?n_form ontolex:writtenRep ?n_ontolex_writtenRep . 
             FILTER regex(?n_ontolex_writtenRep, \""""+word+"""\") . """
         subpart2 = """?n_syndef diamant:definitionText ?n_syndef_definitionText .  
             FILTER regex(?n_ontolex_writtenRep, \""""+word+"""\") . """
+        subpartPos = """{ ?n_entry ud: ?udpos . ?udpos rdfs:label ?lempos . }"""
         if (exactsearch == True):
             subpart1 =  """
                 { ?n_form ontolex:writtenRep ?n_ontolex_writtenRep . 
@@ -68,6 +78,8 @@ def lexicon_query(word, pos, lexicon):
                 { ?n_syndef diamant:definitionText ?n_syndef_definitionText . 
                 values ?n_syndef_definitionText { \""""+word+"""\"@nl \""""+word+"""\" } } 
                 """
+        if (pos is not None and pos != ''):
+            subpartPos = """{ ?n_entry ud: ?udpos . ?udpos rdfs:label ?lempos . values ?lempos {\""""+pos+"""\" \""""+pos+"""\"@nl} . }"""
         query = """
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
         prefix prov: <http://www.w3.org/ns/prov#>
@@ -82,13 +94,14 @@ def lexicon_query(word, pos, lexicon):
         prefix dcterms: <http://purl.org/dc/terms/>
         prefix dc: <http://purl.org/dc/terms/>
 
-        select ?n_entry ?n_form ?n_ontolex_writtenRep ?n_syndef ?n_sensedef ?n_sensedef_definitionText ?n_syndef_definitionText ?n_sense ?inputMode ?wy_f_show ?wy_t_show
+        select ?n_entry ?n_form ?n_ontolex_writtenRep ?n_syndef ?n_sensedef ?n_sensedef_definitionText ?n_syndef_definitionText ?n_sense ?inputMode ?wy_f_show ?wy_t_show ?lempos
         where
         {
         graph ?g
         {
         {
             """ + subpart1 + """
+            """ + subpartPos + """
             { ?n_entry a ontolex:LexicalEntry} .
             { ?n_form a ontolex:Form} .
             { ?n_sense a ontolex:LexicalSense} .
@@ -120,6 +133,7 @@ def lexicon_query(word, pos, lexicon):
             } UNION
           {
             """ + subpart2 + """
+            """ + subpartPos + """
             { ?n_sense a ontolex:LexicalSense} .
             { ?n_syndef a diamant:SynonymDefinition} .
             { ?n_sensedef a lemon:SenseDefinition} .
@@ -149,7 +163,8 @@ def lexicon_query(word, pos, lexicon):
           { bind("defText" as ?inputMode) } .
             }
         }
-        }"""
+        }
+        """+limitPart
     elif (lexicon=="molex"):
         # exact or fuzzy search
         exactsearch = (not stringutils.containsRegex(word))
@@ -192,7 +207,7 @@ def lexicon_query(word, pos, lexicon):
             OPTIONAL {?wordformId diamant:hyphenation ?hyphenation .}
             """+subpart2+"""
             }
-        """
+        """+limitPart
     elif (lexicon=="duelme"):
         # part-of-speech filter not supported for this lexicon
         if (pos is not None and pos != ''):
@@ -221,7 +236,7 @@ def lexicon_query(word, pos, lexicon):
                   OPTIONAL {?y UD:Number ?number}
             """+subpart+"""
             }
-        """
+        """+limitPart
     elif (lexicon=="celex"):
         # part-of-speech filter not supported for this lexicon
         if (pos is not None and pos != ''):
@@ -300,7 +315,7 @@ def lexicon_query(word, pos, lexicon):
                         GROUP BY ?aWordformId ?lemmaIdIRI
                     }
             }
-        """
+        """+limitPart
     else:
         raise ValueError("Lexicon " + lexicon + " unknown!")
         
@@ -308,7 +323,7 @@ def lexicon_query(word, pos, lexicon):
 
 
 
-def _lexicon_query_alllemmata(lexicon, pos):
+def _lexicon_query_alllemmata(lexicon, pos, sparql_limit=None, sparql_offset=None):
     '''
     This function builds a query for getting all lemmata of a lexicon, if needed restricted to a given part-of-speech.
     The resulting query string is to be used as a parameter of search_lexicon().
@@ -319,6 +334,13 @@ def _lexicon_query_alllemmata(lexicon, pos):
     Returns:
         a lexicon query string
     '''
+    
+    limitPart = """"""
+    if sparql_limit is not None:
+        limitPart = """
+        LIMIT """ +  str(sparql_limit) + """
+        OFFSET """ + str(sparql_offset) + """
+        """
     
     if (lexicon=="anw"):
         # part-of-speech filter not supported for this lexicon
@@ -333,7 +355,7 @@ def _lexicon_query_alllemmata(lexicon, pos):
                       ?lemId ontolex:canonicalForm ?lemCFId . 
                       ?lemCFId ontolex:writtenRepresentation ?writtenForm .
                       }
-                      ORDER BY ?writtenForm"""
+                      ORDER BY ?writtenForm"""+limitPart
     elif (lexicon=="celex"):
         # part-of-speech filter not supported for this lexicon
         if (pos is not None and pos != ''):
@@ -345,38 +367,40 @@ def _lexicon_query_alllemmata(lexicon, pos):
             WHERE  {
                 ?lemmaId ontolex:canonicalForm [ontolex:writtenRep ?lemma] .                
                 }
-            ORDER BY ?lemma"""
+            ORDER BY ?lemma"""+limitPart
     elif (lexicon=="diamant"):
         # part-of-speech filter not supported for this lexicon
-        if (pos is not None and pos != ''):
-            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        #if (pos is not None and pos != ''):
+        #    print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+        subpartPos = """""" 
+        if pos is not None and pos != '':
+            subpartPos = """
+            { ?n_entry ontolex:canonicalForm ?n_form .
+              ?n_entry ud: ?udpos . 
+              ?udpos rdfs:label ?lempos . 
+              values ?lempos {\""""+pos+"""\" \""""+pos+"""\"@nl} . }"""
         query = """
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-        prefix prov: <http://www.w3.org/ns/prov#>
-        prefix diamant: <http://rdf.ivdnt.org/schema/diamant#>
-        prefix lexinfo: <http://www.lexinfo.net/ontology/2.0/lexinfo#>
-        prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        prefix lemon: <http://lemon-model.net/lemon#>
-        prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#>
-        prefix ud: <http://universaldependencies.org/u/pos/>
-        prefix skos: <http://www.w3.org/2004/02/skos/core#>
-        prefix dcterms: <http://purl.org/dc/terms/>
-        prefix dc: <http://purl.org/dc/terms/>
+        PREFIX prov: <http://www.w3.org/ns/prov#>
+        PREFIX diamant: <http://rdf.ivdnt.org/schema/diamant#>
+        PREFIX lexinfo: <http://www.lexinfo.net/ontology/2.0/lexinfo#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX lemon: <http://lemon-model.net/lemon#>
+        PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+        PREFIX ud: <http://universaldependencies.org/u/pos/>
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        PREFIX dcterms: <http://purl.org/dc/terms/>
+        PREFIX dc: <http://purl.org/dc/terms/>
 
-        select DISTINCT ?n_ontolex_writtenRep AS ?writtenForm
-        where
-        {
-        graph ?g
-        {
-        {
-            { ?n_form ontolex:writtenRep ?n_ontolex_writtenRep} .
-            { ?n_form a ontolex:Form} .
-        }
-        }
+        SELECT DISTINCT ( ?n_ontolex_writtenRep AS ?writtenForm )
+        WHERE {        
+            { ?n_form ontolex:writtenRep ?n_ontolex_writtenRep } .
+            { ?n_form a ontolex:Form } .
+            """+subpartPos+"""
         }
         ORDER BY ?n_ontolex_writtenRep
-        """
+        """+limitPart
         #LIMIT 10000
         #"""
     elif (lexicon=="duelme"):
@@ -389,7 +413,7 @@ def _lexicon_query_alllemmata(lexicon, pos):
             WHERE  {
                   ?y lmf:hasLemma ?lemma . 
             }
-            ORDER BY ?lemma"""
+            ORDER BY ?lemma"""+limitPart
     elif (lexicon=="molex"):
         # part-of-speech filter
         pos_condition = """"""
@@ -409,7 +433,7 @@ def _lexicon_query_alllemmata(lexicon, pos):
                 ?lemCFId ontolex:writtenRep ?lemma .  
                 """+pos_condition+"""
                 }
-                 ORDER BY ?lemma"""
+                 ORDER BY ?lemma"""+limitPart
     else:
         raise ValueError("Lexicon " + lexicon + " not supported for querying all words.")
         

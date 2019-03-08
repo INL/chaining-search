@@ -63,18 +63,23 @@ class LexiconQuery(GeneralQuery):
                 status.show_wait_indicator('doing offset '+ str(sparql_offset))
 
                 # build query
-                query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._resource)
-                if sparql_limit is not None:
-                    query = query + " LIMIT " +  str(sparql_limit) + " OFFSET " + str(sparql_offset)
-
+                query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._resource, sparql_limit, sparql_offset)
+                
+                display(query)
+                
                 try:
                     # Accept header is needed for virtuoso, it isn't otherwise!
                     response = requests.post(endpoint, data={"query":query}, headers = {"Accept":"application/sparql-results+json"})
                 except Exception as e:
                     status.remove_wait_indicator()
                     raise ValueError("An error occured when searching lexicon " + self._resource + ": "+ str(e))
+                
+                # if response is ill formed, show it for debugging!
+                try:
+                    response_json = json.loads(response.text)                
+                except:
+                    display(response.text)
                     
-                response_json = json.loads(response.text)                
                 records_json = response_json["results"]["bindings"]
                 records_string = json.dumps(records_json)
 
