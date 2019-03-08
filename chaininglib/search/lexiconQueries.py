@@ -376,8 +376,9 @@ def _lexicon_query_alllemmata(lexicon, pos):
         }
         }
         ORDER BY ?n_ontolex_writtenRep
-        LIMIT 10000
         """
+        #LIMIT 10000
+        #"""
     elif (lexicon=="duelme"):
         # part-of-speech filter not supported for this lexicon
         if (pos is not None and pos != ''):

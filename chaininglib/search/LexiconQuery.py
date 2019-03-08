@@ -33,6 +33,9 @@ class LexiconQuery(GeneralQuery):
         '''
         if self._resource not in constants.AVAILABLE_LEXICA:
             raise ValueError("Unknown lexicon: " + self._resource)
+        
+        if self._pattern_given is not None:
+            raise ValueError('In lexicon search, patterns are not allowed. Use lemma and/or a part-of-speech instead.')
             
         if self._lemma is None and self._pos is None:
             raise ValueError('A lemma and/or a part-of-speech is required')
@@ -47,26 +50,58 @@ class LexiconQuery(GeneralQuery):
 
         if method=="sparql":
             endpoint = lexicon_settings["sparql_url"]
-
-            # build query
-            query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._resource)
-
-            try:
-                # Accept header is needed for virtuoso, it isn't otherwise!
-                response = requests.post(endpoint, data={"query":query}, headers = {"Accept":"application/sparql-results+json"})
-            except Exception as e:
-                status.remove_wait_indicator()
-                raise ValueError("An error occured when searching lexicon " + self._resource + ": "+ str(e))
-
-            response_json = json.loads(response.text)
-            records_json = response_json["results"]["bindings"]
-            records_string = json.dumps(records_json)
             
+            sparql_offset = 0
+            sparql_limit = 1000 if self._resource == 'diamant' else None
+            non_empty_response = True
+            
+            collection_df = pd.DataFrame()
+            
+            while non_empty_response:
+                
+                # show how far we are (update offset indicator)
+                status.show_wait_indicator('doing offset '+ str(sparql_offset))
+
+                # build query
+                query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._resource)
+                if sparql_limit is not None:
+                    query = query + " LIMIT " +  str(sparql_limit) + " OFFSET " + str(sparql_offset)
+
+                try:
+                    # Accept header is needed for virtuoso, it isn't otherwise!
+                    response = requests.post(endpoint, data={"query":query}, headers = {"Accept":"application/sparql-results+json"})
+                except Exception as e:
+                    status.remove_wait_indicator()
+                    raise ValueError("An error occured when searching lexicon " + self._resource + ": "+ str(e))
+                    
+                response_json = json.loads(response.text)                
+                records_json = response_json["results"]["bindings"]
+                records_string = json.dumps(records_json)
+
+                # _df_kwic is assigned instead of appended, so kwic() can be called multiple times
+                part_df = pd.read_json(records_string, orient="records")
+                
+                # if the response is not empty, append the data to the whole collection of data
+                if part_df.size > 0:
+                    collection_df = collection_df.append(part_df)
+                    
+                # if the response size equals the max allowed size, we might have to collect more data at the next offset
+                if (sparql_limit is not None and part_df.size == sparql_limit):
+                    sparql_offset = sparql_offset + sparql_limit
+                # otherwise, we must have reached the end, so there is no need to query any further
+                else:
+                    non_empty_response = False          
+                    
+                # remove previous offset indicator
+                status.remove_wait_indicator()
+
+
             # _df_kwic is assigned instead of appended, so kwic() can be called multiple times
-            self._df_kwic = pd.read_json(records_string, orient="records")
+            self._df_kwic = collection_df
             # make sure cells containing NULL are added too, otherwise we'll end up with ill-formed data
             # CAUSES MALFUNCTION: df = df.fillna('')
             self._df_kwic = self._df_kwic.applymap(lambda x: '' if pd.isnull(x) else x["value"])
+                
         elif method=="lexicon_service":
             query_url = constants.LEXICON_SERVICE_URL + "&database=" + self._resource
 
