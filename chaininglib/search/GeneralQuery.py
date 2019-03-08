@@ -8,6 +8,7 @@ class GeneralQuery:
         
         self._resource = resource
         self._pattern_given = pattern
+        self._pattern = None
         self._lemma = lemma
         self._word = word
         self._pos = pos

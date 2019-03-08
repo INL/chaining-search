@@ -129,31 +129,23 @@ class CorpusQuery(GeneralQuery):
         >>> df = corpus_obj.search().kwic()
         '''
         
-        # in case we have multiple patterns, get results for each of them and return those in a list
-        if type(self._pattern_given) is list:
-            patterns = copy.copy(self._pattern_given)
-            for one_pattern in patterns:
-                # Run search method for every pattern
-                # Results will get appended
-                self._pattern = one_pattern
-                self._pattern_given = one_pattern # otherwise infinite recursion!
-                self = self.search()
-                
-        # normal case: one single pattern
-        else:
-            if self._pattern_given:
-                if self._lemma or self._word or self._pos:
-                    raise ValueError('When a pattern (%s) is given, lemma (%s), word (%s) and/or pos (%s) cannot be supplied too. Redundant!' % (self._pattern_given, self._lemma, self._word, self._pos))
-                else:
-                    # Use pattern supplied by user
-                    self._pattern = copy.copy(self._pattern_given)
+        # _pattern_given keeps unchanged so as to be able to call the same corpus object multiple times
+        # only _pattern is set differently if needed
+        
+        
+        if self._pattern_given:
+            if self._lemma or self._word or self._pos:
+                raise ValueError('When a pattern (%s) is given, lemma (%s), word (%s) and/or pos (%s) cannot be supplied too. Redundant!' % (self._pattern_given, self._lemma, self._word, self._pos))
             else:
-                # Pattern will be built with lemma, word, pos
-                if self._lemma or self._word or self._pos:
-                    self._pattern = corpusQueries.corpus_query(self._lemma, self._word, self._pos)
-                else:
-                    # If nothing is given: complain
-                    raise ValueError('A pattern OR a lemma/word/pos is required')
+                # Use pattern supplied by user
+                self._pattern = copy.copy(self._pattern_given)
+        else:
+            # Pattern will be built with lemma, word, pos
+            if self._lemma or self._word or self._pos:
+                self._pattern = corpusQueries.corpus_query(self._lemma, self._word, self._pos)
+            else:
+                # If nothing is given: complain
+                raise ValueError('A pattern OR a lemma/word/pos is required')
 
         
         
@@ -181,8 +173,10 @@ class CorpusQuery(GeneralQuery):
             elif self._method=="blacklab":
                 if "blacklab_url" not in constants.AVAILABLE_CORPORA[self._resource]:
                     raise ValueError("Blacklab access not available for this corpus.")
+                    
                 # Blacklab can filter metadata on server
                 lucene_filter = corpusHelpers._create_lucene_metadata_filter(self._metadata_filter)
+                
                 url = ( constants.AVAILABLE_CORPORA[self._resource]["blacklab_url"] + "/hits?"
                         "&number=" + str(constants.RECORDS_PER_PAGE) +
                         "&first=" + str(self._start_position) +
@@ -219,7 +213,7 @@ class CorpusQuery(GeneralQuery):
             
             # Append new entries (df) to existing dataframe (self._df_kwic): this is relevant if calling this function for multiple search queries
             df = df.fillna("")
-            df = self._df_kwic.append(df, ignore_index=True)
+            #df = self._df_kwic.append(df, ignore_index=True)
             
             self._search_performed = True
 
