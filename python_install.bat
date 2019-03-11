@@ -7,3 +7,5 @@ python-3.7.2-amd64.exe
 echo Set environment variable 
 
 powershell -command "& { [Environment]::SetEnvironmentVariable('Path', $env:USERPROFILE+'\AppData\Local\Programs\Python\Python37\;'+$env:USERPROFILE+'\AppData\Local\Programs\Python\Python37\Scripts\;'+$env:Path, 'User') }"
+
+exit
