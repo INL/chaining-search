@@ -3,6 +3,7 @@
 # We install all required Python packages in a virtual environment, so packages do not interfere with the systemwide installation.
 # Install virtualenv locally, for this user
 pip install --user virtualenv
+export PATH=$PATH:~/.local/bin
 # Create virtual environment
 virtualenv -p python3 env
 # Activate virtual environment

@@ -2,6 +2,7 @@ from nltk.tag.perceptron import PerceptronTagger
 from chaininglib.utils.dfops import property_freq, df_filter
 import pandas as pd
 import chaininglib.ui.status as status
+import re
 
 # beware: just like chaininglib.utils.dfops, this file contains function operating on DataFrames.
 # However the functions in this file aim to manipulate DataFrames with corpus data, 
@@ -199,7 +200,7 @@ def get_tagger(dfs_corpus, word_key="word", pos_key="universal_dependency"):
                 word_idx = word_key+' '+str(i)
                 pos_idx = pos_key+' '+str(i)
                 try:
-                    tuple = ( row[word_idx], row[pos_idx] )
+                    tuple = ( row[word_idx], _cut_off_features(row[pos_idx]) )
                     one_sentence.append( tuple )
                     if (row[word_idx] is None or row[pos_idx] is None):
                         wrong = True
@@ -213,3 +214,10 @@ def get_tagger(dfs_corpus, word_key="word", pos_key="universal_dependency"):
     tagger.train(sentences)
     
     return tagger
+
+
+def _cut_off_features(pos_with_features):
+    '''
+    This function cuts off features from tags with features attached
+    '''
+    return re.sub('^([A-Z-]+)(|\\(.+\\))$', r'\1', pos_with_features) 

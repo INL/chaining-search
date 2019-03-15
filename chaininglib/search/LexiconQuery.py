@@ -52,7 +52,7 @@ class LexiconQuery(GeneralQuery):
             endpoint = lexicon_settings["sparql_url"]
             
             sparql_offset = 0
-            sparql_limit = 1000 if self._resource == 'diamant' else None
+            sparql_limit = 10000 if self._resource == 'diamant' else None
             non_empty_response = True
             
             collection_df = pd.DataFrame()
@@ -60,12 +60,12 @@ class LexiconQuery(GeneralQuery):
             while non_empty_response:
                 
                 # show how far we are (update offset indicator)
-                status.show_wait_indicator('doing offset '+ str(sparql_offset))
+                status.show_wait_indicator('Querying '+self._resource+' at offset '+ str(sparql_offset))
 
                 # build query
                 query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._resource, sparql_limit, sparql_offset)
                 
-                display(query)
+                #display(query)
                 
                 try:
                     # Accept header is needed for virtuoso, it isn't otherwise!

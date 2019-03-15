@@ -2,7 +2,7 @@
 
 echo Install the Python package manager
 
-python -m pip install -U pip
+python -m pip install -U pip /quiet
 
 
 
@@ -29,12 +29,12 @@ pip install tornado==5.1.1
 jupyter contrib nbextension install --sys-prefix
 jupyter nbextensions_configurator enable --sys-prefix
 jupyter nbextension enable collapsible_headings/main
-python -m ipykernel install --user --name env
+python -m ipykernel install --user --name env  /quiet
 
 
 rem fix for temporary issue:
 rem https://github.com/jupyter/notebook/issues/4467
-pip uninstall notebook
+pip uninstall -y notebook
 pip install notebook==5.7.5
 
 

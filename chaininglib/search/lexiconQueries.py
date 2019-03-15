@@ -68,7 +68,7 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
             FILTER regex(?n_ontolex_writtenRep, \""""+word+"""\") . """
         subpart2 = """?n_syndef diamant:definitionText ?n_syndef_definitionText .  
             FILTER regex(?n_ontolex_writtenRep, \""""+word+"""\") . """
-        subpartPos = """{ ?n_entry ud: ?udpos . ?udpos rdfs:label ?lempos . }"""
+        subpartPos = """{ ?n_entry rdf:type ?lempos . }"""
         if (exactsearch == True):
             subpart1 =  """
                 { ?n_form ontolex:writtenRep ?n_ontolex_writtenRep . 
@@ -79,7 +79,7 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
                 values ?n_syndef_definitionText { \""""+word+"""\"@nl \""""+word+"""\" } } 
                 """
         if (pos is not None and pos != ''):
-            subpartPos = """{ ?n_entry ud: ?udpos . ?udpos rdfs:label ?lempos . values ?lempos {\""""+pos+"""\" \""""+pos+"""\"@nl} . }"""
+            subpartPos = subpartPos + """{ ?n_entry rdf:type ?lempos .  FILTER  regex(?lempos, \""""+pos+"""$\") . }"""
         query = """
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
         prefix prov: <http://www.w3.org/ns/prov#>
@@ -125,10 +125,6 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
               ?n_q_filter diamant:witnessYearTo ?wy_t_filter .
               ?n_q_show diamant:witnessYearFrom ?wy_f_show .
               ?n_q_show diamant:witnessYearTo ?wy_t_show .
-              FILTER (xsd:integer(?wy_f_show) >= 1200)
-              FILTER (xsd:integer(?wy_t_show) >= 1200)
-              FILTER (xsd:integer(?wy_f_show) <= 2018)
-              FILTER (xsd:integer(?wy_t_show) <= 2018)
             { bind("lemma" as ?inputMode) } .
             } UNION
           {
@@ -156,10 +152,6 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
             ?n_attest_filter a diamant:Attestation .
             ?n_q_filter a diamant:Quotation .
             ?n_q_show a diamant:Quotation .
-            FILTER (xsd:integer(?wy_f_show) >= 1200)
-            FILTER (xsd:integer(?wy_t_show) >= 1200)
-            FILTER (xsd:integer(?wy_f_show) <= 2018)
-            FILTER (xsd:integer(?wy_t_show) <= 2018)
           { bind("defText" as ?inputMode) } .
             }
         }
@@ -375,10 +367,9 @@ def _lexicon_query_alllemmata(lexicon, pos, sparql_limit=None, sparql_offset=Non
         subpartPos = """""" 
         if pos is not None and pos != '':
             subpartPos = """
-            { ?n_entry ontolex:canonicalForm ?n_form .
-              ?n_entry ud: ?udpos . 
-              ?udpos rdfs:label ?lempos . 
-              values ?lempos {\""""+pos+"""\" \""""+pos+"""\"@nl} . }"""
+            { ?n_entry ontolex:canonicalForm ?n_form } .
+            { ?n_entry rdf:type ?lempos . 
+             FILTER  regex(?lempos, \""""+pos+"""$\" ) } . """
         query = """
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
         PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -420,7 +411,7 @@ def _lexicon_query_alllemmata(lexicon, pos, sparql_limit=None, sparql_offset=Non
         if pos is not None and pos != '':
             pos_condition = """
             {?lemEntryId UD:pos ?lemPos .
-            FILTER regex(?lemPos, '"""+pos+"""') } .
+            FILTER regex(?lemPos, \""""+pos+"""\") } .
             """
         query = """
                 PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>

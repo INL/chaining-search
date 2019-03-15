@@ -8,11 +8,13 @@ import pandas as pd
 
 AVAILABLE_CORPORA = {'zeebrieven':{'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/zeebrieven','default_method':'blacklab'},
                      'gysseling':{'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/gysseling', 'default_method':'blacklab'},
-                     'chn-extern': {'blacklab_url':'http://svotmc10.ivdnt.loc/blacklab-server/chn-extern', 'default_method': 'blacklab'}}
+                     'chn-extern': {'blacklab_url':'http://svotmc10.ivdnt.loc/blacklab-server/chn-extern', 'default_method': 'blacklab'},
+                    'opus': {'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/OPUS','default_method':'blacklab'}}
 
 
 AVAILABLE_LEXICA = {'anw':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
                     'celex':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
+                    #'diamant':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
                     'diamant':{"sparql_url":'http://svprre02:8080/fuseki/tdb/sparql', "method":"sparql"}, 
                     'duelme':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
                     'molex':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"},

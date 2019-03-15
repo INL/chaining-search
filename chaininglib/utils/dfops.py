@@ -165,7 +165,7 @@ def column_difference(df_column1, df_column2):
    
 
     
-def get_rank_diff(df1, df2):    
+def get_rank_diff(df1, df2, index=None):    
     '''
     This function compares the rankings of words common to two dataframes, and compute a rank_diff, in such
     a way that one can see which words are very frequent in one set and rare in the other.
@@ -173,6 +173,7 @@ def get_rank_diff(df1, df2):
     Args:
         df1: a Pandas DataFrame provided with rankings stored in a column "rank"
         df2: a Pandas DataFrame provided with rankings stored in a column "rank"
+        index (Optional): name of the column to be used as index (usually: the lemmata column)
         
     Returns:
         a Pandas DataFrame with lemmata (index), ranks of both input dataframes ('rank_1' and 'rank_2' columns) 
@@ -185,6 +186,10 @@ def get_rank_diff(df1, df2):
     
     check_valid_df("get_rank_diff", df1)
     check_valid_df("get_rank_diff", df2)
+    
+    if index is not None:
+        df1.index.name = 'lemmata'
+        df2.index.name = 'lemmata'
     
     # Find lemmata shared by both dataframes: computing ranks diffs is only possible
     # when dealing with lemmata which are in both frames

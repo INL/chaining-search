@@ -1,10 +1,12 @@
 import ipywidgets as widgets
 from pathlib import Path
-from IPython.display import Javascript
+from IPython.display import Javascript, display
 from IPython.core.display import display, HTML   # print HTML
 import matplotlib.pyplot as plt  # display_df
 import re
 import chaininglib.utils.dfops as dfops
+from ipyupload import FileUpload
+import json
 
 
 def create_save_dataframe_ui(df, filename=None):    
@@ -90,8 +92,53 @@ def load_dataframe(filepath):
         return df
     
     
+def get_uploader(accept='', multiple=False, disabled=False, style_button='', compress_level=0):
+    '''
+    This function returns an file browser for upload.
+    Args:
+         accept: file type, eg. '.txt', '.pdf', 'image/*', 'image/*,.pdf'
+         multiple: True to accept multiple files upload else False
+         disabled: True to disable the button else False to enable it
+         style_button: CSS
+         compress_level: compress level from 0 [No compression] to 9 [max], to compress data from browser to kernel
+    Returns: 
+        a uploader, ready to be displayed
     
-def display_df(dfs, labels=None, mode='table'):
+    >>> uploader = get_uploader()
+    >>> display(uploader)
+    In a following cell, one will be able to retrieve the uploaded file(s) with function get_uploaded_files()
+    '''
+    
+    # https://gitlab.com/oscar6echo/ipyupload
+    return FileUpload( accept, multiple, disabled, style_button, compress_level )
+
+
+def get_uploaded_files(uploader):
+    '''
+    This function returns a list of files, when those have been uploaded with get_uploader()
+    Args:
+         uploader: a file uploader, generated with get_uploader()
+    Returns: 
+        a list of dictionaries, one for each uploaded file, consisting of a 'filename' key and a 'content' key
+    
+    >>> updated_files = get_uploaded_files(uploader)
+    >>> for one_file in updated_files:
+    >>>     print('uploaded file: ' + one_file['filename'])
+    >>>     print('content: ' + one_file['content'])
+    '''
+    # https://gitlab.com/oscar6echo/ipyupload
+    jsonObject = uploader.value    
+    output = []
+
+    # print the keys and values
+    for key in jsonObject:
+        value = jsonObject[key]        
+        output.append({'filename':key, 'content':value['content'].decode("utf-8") })    
+    
+    return output
+    
+    
+def display_df(dfs, labels=None, mode='table', index=None):
     '''
     This function shows the content of one or more Pandas DataFrames.
     When dealing with more DataFrames, those should be part of a dictionary associating
@@ -99,8 +146,9 @@ def display_df(dfs, labels=None, mode='table'):
     
     Args:
         results: a Pandas DataFrames, or a dictionary of Pandas DataFrames
-        labels: a label, of a list of labels corresponding to the Pandas DataFrames in the first parameter
-        mode (Optional): Way of displaying, one of 'table' (default) or 'chart' 
+        labels: a label, or a list of labels corresponding to the Pandas DataFrames in the first parameter
+        mode (Optional): way of displaying, one of 'table' (default) or 'chart' 
+        index (Optional): name of a column to be used as Y-axis (index) in a horizontal chart
     Returns:
         N/A
     
@@ -123,16 +171,17 @@ def display_df(dfs, labels=None, mode='table'):
                 _display_single_df(df, labels[n], mode)
     else:
         dfops.check_valid_df("display_df", dfs)
-        _display_single_df(dfs, labels, mode)
+        _display_single_df(dfs, labels, mode, index)
 
 
-def _display_single_df(df_column, label, mode):
+def _display_single_df(df_column, label, mode, index):
     
     # chart mode
     if mode == 'chart':
-        for i in df_column:
-            print(i)
-        plt.figure()
+        # set a given column as an index (Y-axis), if provided by the user
+        if index is not None:
+            df_column = df_column.set_index(index)
+        # build a horizontal chart
         df_column.plot.barh().set_title(label)
     
     # table mode (default)

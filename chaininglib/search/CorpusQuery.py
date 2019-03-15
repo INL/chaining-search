@@ -185,6 +185,9 @@ class CorpusQuery(GeneralQuery):
             else:
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
                 
+            
+            #display(url)
+            
             response = requests.get(url)
             response_text = response.text
             self._response.append(response_text)
@@ -197,7 +200,7 @@ class CorpusQuery(GeneralQuery):
             if next_page > 0:
                 self._start_position = next_page
 
-                df_more = self.search().kwic()
+                df_more = self.search().kwic()                
                 df = df.append(df_more, ignore_index=True)
 
             status.remove_wait_indicator()
@@ -216,7 +219,8 @@ class CorpusQuery(GeneralQuery):
             #df = self._df_kwic.append(df, ignore_index=True)
             
             self._search_performed = True
-
+            
+            
             # Save dataframe in object, so it can be retrieved with .kwic()
             return self._copyWith('_df_kwic', df)
 
