@@ -68,7 +68,7 @@ class LexiconQuery(GeneralQuery):
                 #display(query)
                 
                 try:
-                    # Accept header is needed for virtuoso, it isn't otherwise!
+                    # Accept header is needed for virtuoso
                     response = requests.post(endpoint, data={"query":query}, headers = {"Accept":"application/sparql-results+json"})
                 except Exception as e:
                     status.remove_wait_indicator()
