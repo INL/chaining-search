@@ -2,7 +2,7 @@
 
 # Linux
  * Chaining search is a Jupyter notebook, which depends on Python 3 and pip (PyPi). Please first install Python 3 and pip via your package management system.
- * Now, run our install script in a terminal:
+ * Now, run our install script in a terminal, as a normal user (without `sudo`):
    ```
    ./install.sh
    ```
@@ -12,7 +12,7 @@
    ```
    and then run the install script.
 
- * Every time you want to run the notebook, run the `run.sh` script:
+ * Every time you want to run the notebook, run the `run.sh` script as a normal user (without `sudo`):
    ```
    ./run.sh
    ```
