@@ -2,17 +2,17 @@
 
 # We install all required Python packages in a virtual environment, so packages do not interfere with the systemwide installation.
 # Install virtualenv locally, for this user
-pip install --user virtualenv
+pip3 install --user virtualenv
 export PATH=$PATH:~/.local/bin
 # Create virtual environment
-virtualenv -p python3 env
+python3 -m venv env
 # Activate virtual environment
 source env/bin/activate
 # All required packages are instlled via pip in the virtual environment
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 # Re-install old tornado version, to fix bug
-pip uninstall -y tornado
-pip install tornado==5.1.1.
+pip3 uninstall -y tornado
+pip3 install tornado==5.1.1.
 # Jupyter Notebook extensions are set up
 jupyter contrib nbextension install --sys-prefix
 jupyter nbextensions_configurator enable --sys-prefix
