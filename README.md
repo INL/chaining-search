@@ -1,7 +1,10 @@
 # Chaining search installation
 
 # Linux/Mac
- * Chaining search is a Jupyter notebook, which depends on Python 3 and pip (PyPi). Please first install Python 3 and pip via your package management system.
+ * Chaining search is a Jupyter notebook, which depends on Python 3, pip (PyPi) and venv. Please first install Python 3 and pip via your package management system. E.g. for Ubuntu:
+ ```
+ sudo apt install python3-pip python3-venv
+ ```
  * Now, run our install script in a terminal, as a normal user (without `sudo`):
    ```
    ./install.sh
