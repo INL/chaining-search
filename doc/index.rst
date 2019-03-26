@@ -10,7 +10,10 @@ Welcome to chaininglib's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   search_api
+   corpus_search
+   lexicon_search
+   treebank_search
+   metadata
    process
    utils
    ui
