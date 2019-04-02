@@ -1,8 +1,11 @@
 # Chaining search installation
 
-# Linux
- * Chaining search is a Jupyter notebook, which depends on Python 3 and pip (PyPi). Please first install Python 3 and pip via your package management system.
- * Now, run our install script in a terminal:
+# Linux/Mac
+ * Chaining search is a Jupyter notebook, which depends on Python 3, pip (PyPi) and venv. Please first install Python 3 and pip via your package management system. E.g. for Ubuntu:
+ ```
+ sudo apt install python3-pip python3-venv
+ ```
+ * Now, run our install script in a terminal, as a normal user (without `sudo`):
    ```
    ./install.sh
    ```
@@ -12,7 +15,7 @@
    ```
    and then run the install script.
 
- * Every time you want to run the notebook, run the `run.sh` script:
+ * Every time you want to run the notebook, run the `run.sh` script as a normal user (without `sudo`):
    ```
    ./run.sh
    ```
@@ -53,3 +56,7 @@ Every time you would like to run chaining search, invoke our run script:
  run.bat
  ```
  * A browser window will open. Now, click `Sandbox.ipynb`. The first time you use it, pick the kernel `env` from menu `Kernel > Change kernel > env`.
+
+
+# Trouble?
+If you encounter any bugs or errors, please let us know via our [GitHub issue tracker](https://github.com/INL/chaining-search/issues) or send an e-mail to servicedesk@ivdnt.org.

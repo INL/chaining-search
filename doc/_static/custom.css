@@ -1,0 +1,31 @@
+dl.class {
+    margin-top: 1.5cm;
+    margin-bottom: 1.5cm;
+}
+
+dl.function {
+    margin-top: 1cm;
+    margin-bottom: 1cm;
+}
+
+dl.method {
+    margin-top: 0.5cm;
+    margin-bottom: 0.5cm;
+}
+
+dt {
+    padding: 5px 0 5px 10px;
+}
+
+
+dl.class dt {
+    background-color: #BED4EB;
+}
+
+dl.function dt {
+    background-color: #C8D5E3;
+}
+
+dl.method dt {
+    background-color: #D8DEE3;
+}

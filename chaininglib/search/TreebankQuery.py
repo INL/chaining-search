@@ -1,4 +1,6 @@
 import copy
+import requests
+import json
 import urllib
 import chaininglib.constants as constants
 from chaininglib.search.treebankParse import _parse_treebank_xml
@@ -12,7 +14,7 @@ from chaininglib.search.GeneralQuery import GeneralQuery
 class TreebankQuery(GeneralQuery):
     """ A query on a treebank. """
 
-    def __init__(self, resource = None):
+    def __init__(self, resource):
         super().__init__(resource)
 
     def __str__(self):
@@ -32,6 +34,7 @@ class TreebankQuery(GeneralQuery):
         >>> treebank_obj = create_treebank(some_treebank).pattern(some_pattern).search()
 
         '''
+        
         if self._pattern_given:
             if self._lemma or self._word or self._pos:
                 raise ValueError('When a pattern (%s) is given, lemma (%s), word (%s) and/or pos (%s) cannot be supplied too. Redundant!' % (self._pattern_given, self._lemma, self._word, self._pos))
@@ -47,32 +50,116 @@ class TreebankQuery(GeneralQuery):
                 # If nothing is given: complain
                 raise ValueError('A pattern OR a lemma/word/pos is required')
         
-        try:
-            # show wait indicator, so the user knows what's happening
-            status.show_wait_indicator('Searching treebanks')
-            
-            # create session
-            session = BaseXClient.Session('svowgr01.ivdnt.loc', 1984, 'admin', 'admin')
-
-            # perform command and returned xml response
-            session.execute("open CGN_ID")
-            response = session.execute(self._pattern)
-
-            # close session
-            session.close()
-            
-            # remove wait indicator, 
-            status.remove_wait_indicator()            
-            
-            self._search_performed = True
-
-            # object enriched with response
-            return self._copyWith('_response', response)
         
-        except Exception as e:
-            status.remove_wait_indicator()
-            raise ValueError("An error occured when searching the treebank : "+ str(e))
+        # show wait indicator, so the user knows what's happening
+        status.show_wait_indicator('Searching treebanks')
+        
+        treebanks_settings = constants.AVAILABLE_TREEBANKS[self._resource]
+        endpoint = treebanks_settings["treebanks_url"]
+        method = treebanks_settings["method"]
+        
+        if method=="xml":        
 
+            try:
+                # create session
+                username = treebanks_settings["user"]
+                password = treebanks_settings["pass"]
+                port = treebanks_settings["port"]
+                session = BaseXClient.Session(endpoint, port, username, password)
+
+                # perform command and returned xml response
+                session.execute("open CGN_ID")
+                pattern_to_send = self._pattern if self._pattern.startswith("xquery") else self._pattern+"xquery "                
+                response = session.execute(pattern_to_send)
+
+                # close session
+                session.close()
+
+                # remove wait indicator, 
+                status.remove_wait_indicator()            
+
+                self._search_performed = True
+
+                # object enriched with response
+                return self._copyWith('_response', response)
+
+            except Exception as e:
+                status.remove_wait_indicator()
+                raise ValueError("An error occured when searching the treebank : "+ str(e))
+
+        elif method=="gretel":
+            
+            # first we need to get the components-ids of the treebank we'd like to query
+            
+            try:
+                url = endpoint+"/configured_treebanks"
+                components_response = requests.get(url)
+                response_json = json.loads(components_response.text)
+                
+                components_data = response_json[self._resource]["components"]
+                
+                # gather components names which are NOT disabled
+                components_names = list()
+                for comp_key in components_data:
+                    if "disabled" in components_data[comp_key] and components_data[comp_key]["disabled"] is True:
+                        continue
+                    components_names.append(comp_key)
+                
+            except Exception as e:
+                status.remove_wait_indicator()
+                raise ValueError("An error occured when reading the treebank components : "+ str(e))                 
+                
+            
+            # send the pattern in a post-request
+            try:
+                url = endpoint+"/results"
+                data_arr ={"already": None,
+                           "components":components_names, 
+                           "corpus":self._resource, 
+                           "isAnalysis":False,
+                           "iteration":0, 
+                           "needRegularGrinded":False, 
+                           "remainingDatabases":None, 
+                           "retrieveContext":False, 
+                           "searchLimit":None,
+                           "variables":[],
+                           "xpath":self._pattern}
+                headers_arr = {'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'}
+                
+                response = requests.post( url, data=json.dumps(data_arr), headers=headers_arr )
+                
+                try:
+                    if response is None:
+                        status.remove_wait_indicator()
+                        raise ValueError("The treebanks json response was empty (None)")  
+                    else:
+                        json_response = response.json()
+                except Exception as e:
+                    status.remove_wait_indicator()
+                    raise ValueError("An error occured when reading the treebanks json response : "+ str(e))  
+                
+                
+                # now extract the xml content out of the json response
+                xmllist = json_response['xmllist']
+                xmlstr = ''
+                
+                # build xml response string
+                for node_key in xmllist:
+                    node_value = xmllist[node_key]
+                    xmlstr += node_value
+                
+                 # remove wait indicator, 
+                status.remove_wait_indicator()            
+
+                self._search_performed = True
+
+                # object enriched with response
+                return self._copyWith('_response', xmlstr)
+                
+                
+            except Exception as e:
+                status.remove_wait_indicator()
+                raise ValueError("An error occured when searching the treebank : "+ str(e))
 
             
     # OUTPUT    
@@ -209,11 +296,11 @@ class TreebankQuery(GeneralQuery):
     
     
 
-def create_treebank(name=None):
+def create_treebank(name):
     '''
     API constructor
     Args:
-        name: Name of the treebank
+        name: Name of the treebank (eg. 'cgn', 'lassy', ...)
     Returns:
         TreebankQuery object
     
@@ -221,3 +308,14 @@ def create_treebank(name=None):
     >>> df = treebank_obj.kwic()
     '''
     return TreebankQuery(name)
+
+
+
+def get_available_treebanks():
+    '''
+    This function returns the list of the available treebanks
+    
+    Returns:
+        list of treebanks names strings
+    '''
+    return list(constants.AVAILABLE_TREEBANKS.keys())

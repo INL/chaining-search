@@ -4,4 +4,5 @@ __pycache__
 env
 *.csv
 *.json
+*.pyc
 _build
