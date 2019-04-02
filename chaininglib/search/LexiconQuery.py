@@ -37,8 +37,8 @@ class LexiconQuery(GeneralQuery):
         if self._pattern_given is not None:
             raise ValueError('In lexicon search, patterns are not allowed. Use lemma and/or a part-of-speech instead.')
             
-        if self._lemma is None and self._pos is None:
-            raise ValueError('A lemma and/or a part-of-speech is required')
+        if self._lemma is None and self._pos is None and self._word is None:
+            raise ValueError("A lemma and/or a part-of-speech and/or a word is required" + self._word)
             
         # Reset self._df_kwic, from previous calls of search()
         self._df_kwic = pd.DataFrame()
@@ -109,10 +109,14 @@ class LexiconQuery(GeneralQuery):
                 
         elif method=="lexicon_service":
             query_url = constants.LEXICON_SERVICE_URL + "&database=" + self._resource
+            query_url = query_url.replace('_QUERY_TYPE_', self._query_type)
 
-            if not self._lemma:
-                raise ValueError("For this lexicon, a lemma is necessary!")
-            query_url += "&lemma=" + self._lemma
+            if 0==1 and self._lemma is None and  self._word is None:
+                raise ValueError("For this lexicon, a lemma or a word is necessary!" + self._word)
+            if self._lemma:
+              query_url += "&lemma=" + self._lemma
+            if self._word:
+              query_url += "&wordform=" + self._word
             if self._pos:
                 query_url += "&pos=" + self._pos
             try:
@@ -121,17 +125,30 @@ class LexiconQuery(GeneralQuery):
                 status.remove_wait_indicator()
                 raise ValueError("An error occured when searching lexicon " + self._resource + ": "+ str(e))
 
+            print (query_url)
             response_json = json.loads(response.text)
-            records_json = response_json["wordforms_list"]
+
+            if (self._query_type == 'get_lemma_from_wordform'):
+               records_json = response_json["lemmata_list"]
+            else:
+               records_json = response_json["wordforms_list"]
             records_string = json.dumps(records_json)
             
             # _df_kwic is assigned instead of appended, so kwic() can be called multiple times
             
             for query_result in records_json:
                 query_result_string = json.dumps(query_result)
-                df_query_result = pd.read_json(query_result_string)
-                self._df_kwic = self._df_kwic.append(df_query_result, ignore_index=True)
-            self._df_kwic = self._df_kwic.rename(columns={"found_wordforms":"wordform"})
+                if (self._query_type == 'get_lemma_from_wordform'):
+                  lemma_records = query_result['found_lemmata']
+                  for lemma_record in lemma_records:
+                      print(lemma_record)
+                      lemma_record_string = json.dumps(lemma_record)
+                      df_query_result = pd.read_json(lemma_record_string)
+                      self._df_kwic = self._df_kwic.append(df_query_result, ignore_index=True)
+                else:
+                  df_query_result = pd.read_json(query_result_string)
+                  self._df_kwic = self._df_kwic.append(df_query_result, ignore_index=True)
+            self._df_kwic = self._df_kwic.rename(columns={"found_wordforms":"wordform"}).rename(columns={"found_lemmata":"lemma"})
             
             # make sure cells containing NULL are added too, otherwise we'll end up with ill-formed data
             # CAUSES MALFUNCTION: df = df.fillna('')

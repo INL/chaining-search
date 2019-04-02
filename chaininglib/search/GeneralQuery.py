@@ -12,6 +12,7 @@ class GeneralQuery:
         self._lemma = lemma
         self._word = word
         self._pos = pos
+        self._query_type = 'get_wordforms'
 
         self._response = []
         self._df_kwic = pd.DataFrame()
@@ -33,7 +34,19 @@ class GeneralQuery:
             search object
         '''
         return self._copyWith('_pattern_given', p)
-    
+   
+    def query_type(self, t):
+        '''
+        Set a query type
+
+        Args:
+            t: query type
+
+        Returns:
+            search object
+        '''
+        return self._copyWith('_query_type', t)
+
     def lemma(self, l):
         '''
         Set a lemma as part of a search pattern
