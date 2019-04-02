@@ -12,13 +12,14 @@ from chaininglib.search.GeneralQuery import GeneralQuery
 class CorpusQuery(GeneralQuery):
     """ A query on a token-based corpus. """
 
-    def __init__(self, resource, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 0, metadata_filter={}, method=None):
+    def __init__(self, resource, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 0, max_results= constants.RECORDS_PER_PAGE, metadata_filter={}, method=None):
         
         super().__init__(resource, pattern, lemma, word, pos)
         self._detailed_context = detailed_context
         self._extra_fields_doc = extra_fields_doc
         self._extra_fields_token = extra_fields_token
         self._start_position = start_position
+        self._max_results = max_results
         self._metadata_filter = metadata_filter
         self._response = []
         self._df_kwic = pd.DataFrame()
@@ -91,6 +92,18 @@ class CorpusQuery(GeneralQuery):
             CorpusQuery object
         '''
         return self._copyWith('_start_position', start_position)
+
+    def max_results(self, max_results):
+        '''
+        Limit the maximum number of results returned.
+        
+        Args:
+            max_results: maximum number of results.
+        
+        Returns:
+            CorpusQuery object
+        '''
+        return self._copyWith('_max_results', max_results)
 
     def metadata_filter(self, metadata_filter):
         '''
@@ -186,7 +199,7 @@ class CorpusQuery(GeneralQuery):
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
                 
             
-            #display(url)
+            #print ('Corpus Query url:' + url)
             
             response = requests.get(url)
             response_text = response.text
@@ -196,8 +209,13 @@ class CorpusQuery(GeneralQuery):
             elif self._method=="blacklab":
                 df, next_page = corpusHelpers._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
                 
-            # If there are next pages, call search_corpus recursively
-            if next_page > 0:
+            # If there are next pages, call search_corpus recursively (could result in )
+            
+            retrieved_so_far = self._start_position + len(df.index)
+
+            #print("# results now:" + str(retrieved_so_far) + " max: " + str(self._max_results))
+
+            if next_page > 0 and retrieved_so_far < self._max_results:
                 self._start_position = next_page
 
                 df_more = self.search().kwic()                
