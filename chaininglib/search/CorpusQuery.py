@@ -6,13 +6,14 @@ import chaininglib.ui.status as status
 import chaininglib.search.corpusHelpers as corpusHelpers
 import chaininglib.search.corpusQueries as corpusQueries
 import pandas as pd
+import sys
 
 from chaininglib.search.GeneralQuery import GeneralQuery
 
 class CorpusQuery(GeneralQuery):
     """ A query on a token-based corpus. """
 
-    def __init__(self, resource, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 0, max_results= constants.RECORDS_PER_PAGE, metadata_filter={}, method=None):
+    def __init__(self, resource, pattern = None, lemma = None, word=None, pos=None, detailed_context = False, extra_fields_doc = [], extra_fields_token = [], start_position = 0, max_results= sys.maxsize, metadata_filter={}, method=None):
         
         super().__init__(resource, pattern, lemma, word, pos)
         self._detailed_context = detailed_context
@@ -202,7 +203,7 @@ class CorpusQuery(GeneralQuery):
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
                 
             
-            #print ('Corpus Query url:' + url)
+            print ('Corpus Query url:' + url)
             
             response = requests.get(url)
             response_text = response.text
