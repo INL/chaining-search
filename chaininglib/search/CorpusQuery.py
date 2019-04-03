@@ -169,7 +169,10 @@ class CorpusQuery(GeneralQuery):
 
         # show wait indicator
         status.remove_wait_indicator()
+        
         status.show_wait_indicator('Searching '+self._resource+ ' at result '+str(self._start_position))  
+        
+        amount_to_fetch = min(constants.RECORDS_PER_PAGE, max(0,self._max_results - self._start_position))
         
 
         try:
@@ -179,7 +182,7 @@ class CorpusQuery(GeneralQuery):
 
                 # Do request to federated content search corpora, so we get same output format for every corpus
                 url = ( constants.FCS_URL +
-                        "&maximumRecords=" + str(constants.RECORDS_PER_PAGE) +
+                        "&maximumRecords=" + str(amount_to_fetch) +
                         "&startRecord=" + str(self._start_position) +
                         "&x-fcs-context=" + self._resource + 
                         "&query=" + urllib.parse.quote_plus(self._pattern) )
@@ -191,7 +194,7 @@ class CorpusQuery(GeneralQuery):
                 lucene_filter = corpusHelpers._create_lucene_metadata_filter(self._metadata_filter)
                 
                 url = ( constants.AVAILABLE_CORPORA[self._resource]["blacklab_url"] + "/hits?"
-                        "&number=" + str(constants.RECORDS_PER_PAGE) +
+                        "&number=" + str(amount_to_fetch) +
                         "&first=" + str(self._start_position) +
                         "&patt=" + urllib.parse.quote(self._pattern) +
                         "&filter=" + urllib.parse.quote_plus(lucene_filter) )
