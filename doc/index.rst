@@ -6,17 +6,15 @@
 Welcome to chaininglib's documentation!
 =======================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
 
-   corpus_search
-   lexicon_search
-   treebank_search
-   metadata
-   process
-   utils
-   ui
+ * :download:`Download Quickstart document <Quickstart.pdf>`
+ * :ref:`corpus_search`
+ * :ref:`lexicon_search`
+ * :ref:`treebank_search`
+ * :ref:`metadata`
+ * :ref:`process`
+ * :ref:`utils`
+ * :ref:`ui`
 
 
 
@@ -27,4 +25,3 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`

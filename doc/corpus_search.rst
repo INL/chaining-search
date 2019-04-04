@@ -1,3 +1,5 @@
+.. _corpus_search:
+
 Corpus search
 -------------
 

@@ -1,3 +1,5 @@
+.. _treebank_search:
+
 Treebank search
 ---------------
 
