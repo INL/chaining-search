@@ -65,7 +65,6 @@ class LexiconQuery(GeneralQuery):
                 # build query
                 query = lexiconQueries.lexicon_query(self._lemma, self._pos, self._resource, sparql_limit, sparql_offset)
                 
-                #display(query)
                 
                 try:
                     # Accept header is needed for virtuoso

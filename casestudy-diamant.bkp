@@ -1,0 +1,38 @@
+ 
+ 
+ * [Retrieve synonyms from DiaMaNT, look up in Gysseling](#synonyms-diamant-gysseling)
+
+  * **diamant**: DiaMaNT, diachronous semantic lexicon of the Dutch language. Contains synonym relations extracted from all Dutch historical dictionaries.
+
+  ### Retrieve synonyms from DiaMaNT, look up in Gysseling <a class="anchor" id="synonyms-diamant-gysseling"></a>
+* Below cell searches for term "boek" in DiaMaNT, and looks up all variants in Gysseling
+
+from chaininglib.search.CorpusQuery import *
+from chaininglib.search.LexiconQuery import *
+from IPython.core.display import display, HTML
+from chaininglib.search.corpusQueries import corpus_query
+from chaininglib.process.lexicon import get_diamant_synonyms
+from chaininglib.ui.dfui import display_df
+
+search_word = "boek"
+lexicon_name = "diamant"
+corpus= "gysseling"
+
+# First, lookup synonyms in DiaMaNT
+lq = create_lexicon(lexicon_name).lemma(search_word).search()
+df_lexicon = lq.kwic()
+
+syns = get_diamant_synonyms(df_lexicon)
+syns.add(search_word) # Also add search word itself
+display(HTML('Synoniemen voor <b>' + search_word + '</b>: ' + ", ".join(syns)))
+
+# Search for all synonyms in corpus
+## Create queries: search by lemma
+syns_queries = [corpus_query(lemma=syn) for syn in syns]
+
+## Search for all synonyms in corpus
+df = pd.DataFrame()
+for one_pattern in syns_queries:
+    cq = create_corpus(corpus).pattern(one_pattern).search()
+    df = df.append(cq.kwic())
+display_df(df)

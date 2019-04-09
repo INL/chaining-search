@@ -95,9 +95,8 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
         prefix dc: <http://purl.org/dc/terms/>
 
         select ?n_entry ?n_form ?n_ontolex_writtenRep ?n_syndef ?n_sensedef ?n_sensedef_definitionText ?n_syndef_definitionText ?n_sense ?inputMode ?wy_f_show ?wy_t_show ?lempos
+        FROM <http://rdf.ivdnt.org/lexica/diamant/v1.0/>
         where
-        {
-        graph ?g
         {
         {
             """ + subpart1 + """
@@ -154,7 +153,6 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
             ?n_q_show a diamant:Quotation .
           { bind("defText" as ?inputMode) } .
             }
-        }
         }
         """+limitPart
     elif (lexicon=="molex"):
@@ -249,6 +247,7 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
             PREFIX gold: <http://purl.org/linguistics/gold#>
             
             SELECT DISTINCT ?lemmaId ?lemma ?wordformId ?wordform ?number ?gender concat('', ?subLemmata) AS ?subLemmata
+            FROM <http://rdf.ivdnt.org/lexica/celex>
             WHERE  {
                 ?lemmaId ontolex:canonicalForm [ontolex:writtenRep ?lemma] .
                 """+subpart+"""

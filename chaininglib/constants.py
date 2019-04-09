@@ -12,16 +12,18 @@ AVAILABLE_CORPORA = {'zeebrieven':{'blacklab_url':'http://brievenalsbuit.ato.ivd
                     'opus': {'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/OPUS','default_method':'blacklab'}}
 
 
-AVAILABLE_LEXICA = {'anw':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
-                    'celex':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
+AVAILABLE_LEXICA = {'anw':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"}, 
+                    'celex':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"}, 
                     #'diamant':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
-                    'diamant':{"sparql_url":'http://svprre02:8080/fuseki/tdb/sparql', "method":"sparql"}, 
-                    'duelme':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
-                    'molex':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"},
+                    #'diamant':{"sparql_url":'http://svprre02:8080/fuseki/tdb/sparql', "method":"sparql"}, 
+                    #'diamant':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"}, 
+                    'duelme':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"}, 
+                    'molex':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"},
                     'mnwlex': {"method":"lexicon_service"},
                     'nameslex': {"method":"lexicon_service"},
                     'lexicon_service_db': {"method":"lexicon_service"}}
                     #'lexiconservice_mnw_wnt': {"method":"lexicon_service"}}
+
     
 AVAILABLE_TREEBANKS = {'treebanks_xml':{"treebanks_url":'svowgr01.ivdnt.loc', "method":'basex', "user":"admin", "pass":"admin", "port":1984},
                       'cgn':{"treebanks_url":'http://svprgr01.ivdnt.org/api/src/router.php', "method":'gretel'},
@@ -43,7 +45,7 @@ DEFAULT_FIELDS_DOC_BL = []
 DEFAULT_QUERY = r'[lemma="boek"]'
 DEFAULT_CORPUS = "zeebrieven"
 DEFAULT_SEARCHWORD = 'boek'
-DEFAULT_LEXICON = "diamant"
+DEFAULT_LEXICON = "anw"
 
 ENABLE_WAIT_INDICATOR = True
 
