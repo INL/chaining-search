@@ -21,6 +21,7 @@ class CorpusQuery(GeneralQuery):
         self._extra_fields_token = extra_fields_token
         self._start_position = start_position
         self._max_results = max_results
+        self._maximum_result_number = self._start_position + self._max_results
         self._metadata_filter = metadata_filter
         self._response = []
         self._df_kwic = pd.DataFrame()
@@ -92,7 +93,9 @@ class CorpusQuery(GeneralQuery):
         Returns:
             CorpusQuery object
         '''
-        return self._copyWith('_start_position', start_position)
+        s1 = self._copyWith('_start_position', start_position)
+        s1._maximum_result_number = s1._start_position + s1._max_results
+        return s1
 
     def max_results(self, max_results):
         '''
@@ -104,7 +107,9 @@ class CorpusQuery(GeneralQuery):
         Returns:
             CorpusQuery object
         '''
-        return self._copyWith('_max_results', max_results)
+        s1 = self._copyWith('_max_results', max_results)
+        s1._maximum_result_number = s1._start_position + s1._max_results
+        return s1
 
     def metadata_filter(self, metadata_filter):
         '''
@@ -173,7 +178,7 @@ class CorpusQuery(GeneralQuery):
         
         status.show_wait_indicator('Searching '+self._resource+ ' at result '+str(self._start_position))  
         
-        amount_to_fetch = min(constants.RECORDS_PER_PAGE, max(0,self._max_results - self._start_position))
+        amount_to_fetch = min(constants.RECORDS_PER_PAGE, max(0,self._maximum_result_number - self._start_position))
         
 
         try:

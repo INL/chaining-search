@@ -183,7 +183,10 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
     
     next_pos = 0
     summary = root.find("summary")
-    has_next = summary.find("windowHasNext").text
+    windowHasNext = summary.find("windowHasNext")
+    has_next = "false"
+    if windowHasNext is not None:
+         has_next = windowHasNext.text
     # If there is a next page, compute new start position
     if (has_next == "true"):
         first = summary.find("windowFirstResult").text
