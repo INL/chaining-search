@@ -188,14 +188,16 @@ def get_rank_diff(df1, df2, index=None):
     check_valid_df("get_rank_diff", df2)
     
     if index is not None:
-        df1.index.name = 'lemmata'
-        df2.index.name = 'lemmata'
-    
+        # https://stackoverflow.com/questions/42196337/dataframe-set-index-not-setting
+        df1.set_index(index, inplace=True, drop=True)
+        df2.set_index(index, inplace=True, drop=True)
+        
     # Find lemmata shared by both dataframes: computing ranks diffs is only possible
     # when dealing with lemmata which are in both frames
     lemmata_list1 = set(df1.index.tolist())
     lemmata_list2 = set(df2.index.tolist())
     common_lemmata_list = list( lemmata_list1.intersection(lemmata_list2) )
+    
     
     # Build dataframes limited to the common lemmata
     limited_df1 = df1.loc[ common_lemmata_list , : ]
