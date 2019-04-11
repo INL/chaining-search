@@ -208,8 +208,6 @@ class CorpusQuery(GeneralQuery):
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
                 
             
-            print ('Corpus Query url:' + url)
-            
             response = requests.get(url)
             response_text = response.text
             self._response.append(response_text)
