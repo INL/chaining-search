@@ -6,10 +6,10 @@ import pandas as pd
 #                      'gysseling':{'blacklab_url':'http://svprmc20.ivdnt.org/blacklab-server/gysseling', 'default_method':'blacklab'},
 #                      'nederlab':{'default_method':'fcs'}}
 
-AVAILABLE_CORPORA = {'zeebrieven':{'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/zeebrieven','default_method':'blacklab'},
-                     'gysseling':{'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/gysseling', 'default_method':'blacklab'},
-                     'openchn': {'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/openchn/', 'default_method': 'blacklab'},
-                    'opus': {'blacklab_url':'http://brievenalsbuit.ato.ivdnt.org/blacklab-server/OPUS','default_method':'blacklab'}}
+AVAILABLE_CORPORA = {'zeebrieven':{'blacklab_url':'http://corpora.ato.ivdnt.org/blacklab-server/zeebrieven','default_method':'blacklab'},
+                     'gysseling':{'blacklab_url':'http://corpora.ato.ivdnt.org/blacklab-server/gysseling', 'default_method':'blacklab'},
+                     'openchn': {'blacklab_url':'http://corpora.ato.ivdnt.org/blacklab-server/openchn/', 'default_method': 'blacklab'},
+                    'opus': {'blacklab_url':'http://corpora.ato.ivdnt.org/blacklab-server/OPUS','default_method':'blacklab'}}
 
 
 AVAILABLE_LEXICA = {'anw':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"}, 
