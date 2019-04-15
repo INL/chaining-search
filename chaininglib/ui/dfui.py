@@ -5,7 +5,7 @@ from IPython.core.display import display, HTML   # print HTML
 import matplotlib.pyplot as plt  # display_df
 import re
 import chaininglib.utils.dfops as dfops
-from ipyupload import FileUpload
+#from ipyupload import FileUpload
 import json
 
 
@@ -92,7 +92,7 @@ def load_dataframe(filepath):
         return df
     
     
-def get_uploader(accept='', multiple=False, disabled=False, style_button='', compress_level=0):
+""" def get_uploader(accept='', multiple=False, disabled=False, style_button='', compress_level=0):
     '''
     This function returns an file browser for upload.
     Args:
@@ -135,7 +135,7 @@ def get_uploaded_files(uploader):
         value = jsonObject[key]        
         output.append({'filename':key, 'content':value['content'].decode("utf-8") })    
     
-    return output
+    return output """
     
     
 def display_df(dfs, labels=None, mode='table', index=None):
