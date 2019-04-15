@@ -15,7 +15,7 @@ AVAILABLE_CORPORA = {'zeebrieven':{'blacklab_url':'http://corpora.ato.ivdnt.org/
 AVAILABLE_LEXICA = {'anw':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"}, 
                     'celex':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"}, 
                     #'diamant':{"sparql_url":'http://172.16.4.56:8890/sparql', "method":"sparql"}, 
-                    #'diamant':{"sparql_url":'http://svprre02:8080/fuseki/tdb/sparql', "method":"sparql"}, 
+                    'diamant':{"sparql_url":'http://svprre02:8080/fuseki/tdb/sparql', "method":"sparql"}, 
                     #'diamant':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"}, 
                     'duelme':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"}, 
                     'molex':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":"sparql"},

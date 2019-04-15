@@ -47,12 +47,12 @@ def create_lexicon_ui():
     Returns:
         N/A
     '''
-   
+    lexica_ui = [x for x in constants.AVAILABLE_LEXICA.keys() if x != "diamant"]
 
     # Create UI elements
     searchWordField = widgets.Text(description="<b>Word:</b>", value=constants.DEFAULT_SEARCHWORD)
     lexiconField = widgets.Dropdown(
-        options=constants.AVAILABLE_LEXICA.keys(),
+        options=lexica_ui,
         value=constants.DEFAULT_LEXICON,
         description='<b>Lexicon:</b>',
     )
