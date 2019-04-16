@@ -79,7 +79,7 @@ def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wo
     >>> lexicon = extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wordformColumnName='word')
 
     '''
-    print("extracting lexicon...")
+    print("Extracting lexicon...")
     
     # Instantiate a DataFrame 
     # in which we will gather the paradigms
