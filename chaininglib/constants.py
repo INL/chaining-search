@@ -26,8 +26,8 @@ AVAILABLE_LEXICA = {'anw':{"sparql_url":'http://rdf.ivdnt.org/sparql', "method":
 
     
 AVAILABLE_TREEBANKS = {'treebanks_xml':{"treebanks_url":'svowgr01.ivdnt.loc', "method":'basex', "user":"admin", "pass":"admin", "port":1984},
-                      'cgn':{"treebanks_url":'http://svprgr01.ivdnt.org/api/src/router.php', "method":'gretel'},
-                      'lassy':{"treebanks_url":'http://svprgr01.ivdnt.org/api/src/router.php', "method":'gretel'}}
+                      'cgn':{"treebanks_url":'http://gretel.ivdnt.org/api/src/router.php', "method":'gretel'},
+                      'lassy':{"treebanks_url":'http://gretel.ivdnt.org/api/src/router.php', "method":'gretel'}}
 
 RECORDS_PER_PAGE = 1000
 FCS_URL = "http://portal.clarin.inl.nl/fcscorpora/clariah-fcs-endpoints/sru?operation=searchRetrieve&queryType=fcs"
