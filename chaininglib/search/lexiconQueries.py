@@ -45,7 +45,7 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
                   PREFIX lemon: <http://lemon-model.net/lemon#>
                   
                   SELECT ?lemId ?lemma ?writtenForm ?definition concat('', ?definitionComplement) as ?definitionComplement
-                  FROM <http://rdf.ivdnt.org/lexica/anw>
+                  FROM <http://rdf.ivdnt.org/lexica/anw/>
                   WHERE {
                       ?lemId rdfs:label ?lemma .
                       ?lemId ontolex:sense ?senseId .
@@ -173,13 +173,39 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
             else:
                 subpart2 = """FILTER ( regex(?lemma, \""""+word+"""\") || regex(?wordform, \""""+word+"""\") ) . """
         if (pos is not None and pos != ''):
-            subpartPos = """FILTER ( regex(?lemPos, \""""+pos+"""$\") ) ."""
+            features_start = pos.find('(')
+            features_end = pos.find(')')
+            
+            if (features_start >=0):
+                
+                # extract features before we cut them off the pos
+                features_arr = ( pos[ features_start+1 : features_end ] ).split(",")
+                
+                # deal with pos
+                pos = pos[ 0 : features_start ]
+                subpartPos = """FILTER ( regex(?lemPos, \""""+pos+"""\") ) ."""
+                
+                # deal with the features now
+                for one_features_set in features_arr:
+                    key = one_features_set.split("=")[0]
+                    
+                    if (key == 'degree'):
+                        value = one_features_set.split("=")[1]
+                        subpartPos = subpartPos + """
+                            { ?lemEntryId UD:Degree ?degree .
+                            FILTER ( regex( lcase(str(?degree)), \""""+value+"""$\") ) .}
+                            """
+            
+            else:
+                subpartPos = """FILTER ( regex(?lemPos, \""""+pos+"""$\") ) ."""
+            
+                   
         query = """
             PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
             PREFIX UD: <http://universaldependencies.org/u/>
             PREFIX diamant: <http://rdf.ivdnt.org/schema/diamant#>
             
-            SELECT ?lemEntryId ?lemma ?lemPos ?wordformId ?wordform ?hyphenation ?wordformPos ?Gender ?Number
+            SELECT DISTINCT ?lemEntryId ?lemma ?lemPos ?wordformId ?wordform ?hyphenation ?wordformPos ?Gender ?Number
             FROM <http://rdf.ivdnt.org/lexica/molex>
             WHERE
             {
@@ -198,35 +224,144 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
             """+subpart2+"""
             }
         """+limitPart
+        
+        
+#     elif (lexicon=="duelme"):
+#         # part-of-speech filter not supported for this lexicon
+#         if (pos is not None and pos != ''):
+#             print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
+#         # exact or fuzzy search
+#         exactsearch = (not stringutils.containsRegex(word))
+#         subpart = """FILTER ( regex(?lemma, \""""+word+"""\") || regex(?wordform, \""""+word+"""\") ) ."""
+#         if (exactsearch == True):
+#             subpart =  """
+#                 { ?y lmf:hasLemma ?dl .  
+#                 values ?dl { \""""+word+"""\"@nl \""""+word+"""\" } }                 
+#                 """        
+#         query = """
+#             PREFIX duelme: <http://rdf.ivdnt.org/lexica/duelme>
+#             PREFIX intskos: <http://ivdnt.org/schema/lexica#>
+#             PREFIX lmf: <http://www.lexinfo.net/lmf>
+#             PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+#             PREFIX UD: <http://rdf.ivdnt.org/vocabs/UniversalDependencies2#>
+            
+#             SELECT ?exampleSentence ?lemma ?gender ?number
+#             WHERE  {
+#                   ?d intskos:ExampleSentence ?exampleSentence .
+#                   ?d lmf:ListOfComponents [lmf:Component ?y] .
+#                   ?y lmf:hasLemma ?lemma . 
+#                   OPTIONAL {?y UD:Gender ?gender}
+#                   OPTIONAL {?y UD:Number ?number}
+#             """+subpart+"""
+#             }
+#         """+limitPart
     elif (lexicon=="duelme"):
-        # part-of-speech filter not supported for this lexicon
+        duelMeSubparts1 = """
+                { FILTER ( regex(?multiwordexp, \""""+word+"""\") ) . }                 
+                """
+        duelMeSubparts2 = """"""
         if (pos is not None and pos != ''):
-            print('Filtering by part-of-speech is not (yet) supported in the \''+lexicon+'\' lexicon')
-        # exact or fuzzy search
-        exactsearch = (not stringutils.containsRegex(word))
-        subpart = """FILTER ( regex(?lemma, \""""+word+"""\") || regex(?wordform, \""""+word+"""\") ) ."""
-        if (exactsearch == True):
-            subpart =  """
-                { ?y lmf:hasLemma ?dl .  
-                values ?dl { \""""+word+"""\"@nl \""""+word+"""\" } }                 
-                """        
+            duelMeSubparts2 = """
+                    { values ?syncat { \""""+pos+"""\" } . }
+                    """
         query = """
             PREFIX duelme: <http://rdf.ivdnt.org/lexica/duelme>
             PREFIX intskos: <http://ivdnt.org/schema/lexica#>
             PREFIX lmf: <http://www.lexinfo.net/lmf>
             PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
             PREFIX UD: <http://rdf.ivdnt.org/vocabs/UniversalDependencies2#>
-            
-            SELECT ?exampleSentence ?lemma ?gender ?number
-            WHERE  {
-                  ?d intskos:ExampleSentence ?exampleSentence .
-                  ?d lmf:ListOfComponents [lmf:Component ?y] .
-                  ?y lmf:hasLemma ?lemma . 
-                  OPTIONAL {?y UD:Gender ?gender}
-                  OPTIONAL {?y UD:Number ?number}
-            """+subpart+"""
+            PREFIX prov: <http://www.w3.org/ns/prov#>
+            PREFIX dcterms: <http://purl.org/dc/terms/>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>    
+            PREFIX olia: <http://purl.org/olia/olia.owl#>
+
+            SELECT ?lemma  ?pos ?parts
+            FROM <http://rdf.ivdnt.org/lexica/duelme>
+            WHERE {      
+              SELECT replace(STRAFTER(str(?multiwordexp), "duelme_"), "_", " ") AS ?lemma ?mwepattern (?syncat AS ?pos) group_concat(DISTINCT ?subsubcat; separator=" + ") AS ?parts
+              WHERE  { 
+                    {
+                    SELECT DISTINCT ?multiwordexp ?mwepattern (STRAFTER(str(?trueSynCat), '#') AS ?syncat) (STRAFTER(str(?trueSubsubcat), '#') AS ?subsubcat) 
+                    FROM <http://rdf.ivdnt.org/lexica/duelme>
+                    WHERE {
+                        {
+                        ?multiwordexp lmf:hasMWEPattern ?mwepattern .      
+                        ?mwepattern lmf:hasMWENode ?node .
+                        ?node rdf:type ?syncat .
+                        filter regex(str(?syncat), 'http://purl.org/olia/olia.owl') .
+                          bind(
+                            if(?syncat = olia:NounPhrase,
+                              olia:NP,
+                              if(?syncat = olia:VerbPhrase, 
+                                olia:VP, 
+                                if(?syncat = olia:Determiner, 
+                                  olia:DP, 
+                                  if(?syncat = olia:Verb, 
+                                    olia:V, 
+                                    if(?syncat = olia:PrepositionalPhrase, 
+                                    olia:PP, 
+                                      if(?syncat = olia:Preposition, 
+                                      olia:P, 
+                                        if(?syncat = olia:AdjectivePhrase, 
+                                        olia:AP, 
+                                          if(?syncat = olia:SubordicateClause, 
+                                          olia:SC, 
+                                          olia:Unknown
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                            AS ?trueSynCat )
+                          ?node lmf:hasMWEEdge ?subnode .
+                          ?subnode lmf:hasMWENode ?subsubnode .
+                            ?subsubnode rdf:type ?subsubcat .  
+                          filter regex(str(?subsubcat), 'http://purl.org/olia/olia.owl') .
+                          bind(
+                            if(?subsubcat = olia:NounPhrase,
+                              olia:NP,
+                              if(?subsubcat = olia:VerbPhrase, 
+                                olia:VP, 
+                                if(?subsubcat = olia:Determiner, 
+                                  olia:DP, 
+                                  if(?subsubcat = olia:Verb, 
+                                    olia:V, 
+                                    if(?subsubcat = olia:PrepositionalPhrase, 
+                                    olia:PP, 
+                                      if(?subsubcat = olia:Preposition, 
+                                      olia:P, 
+                                        if(?subsubcat = olia:AdjectivePhrase, 
+                                        olia:AP, 
+                                          if(?subsubcat = olia:SubordicateClause, 
+                                          olia:SC, 
+                                          olia:Unknown
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                            AS ?trueSubsubcat )
+
+                            """+duelMeSubparts1+"""
+                            }                   
+
+                    }
+                    ORDER BY ?partnr
+                  } 
+                  {
+                    """+duelMeSubparts2+"""
+                  }
+                } 
+              GROUP BY ?multiwordexp ?mwepattern  ?syncat 
+
             }
-        """+limitPart
+        """
     elif (lexicon=="celex"):
         # part-of-speech filter not supported for this lexicon
         if (pos is not None and pos != ''):
@@ -241,13 +376,13 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
                 """        
         query = """
             PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
-            PREFIX celex: <http://rdf.ivdnt.org/lexica/celex>
+            PREFIX celex: <http://rdf.ivdnt.org/lexica/celex/>
             PREFIX UD: <http://rdf.ivdnt.org/vocabs/UniversalDependencies2#>
             PREFIX decomp: <http://www.w3.org/ns/lemon/decomp#>
             PREFIX gold: <http://purl.org/linguistics/gold#>
             
             SELECT DISTINCT ?lemmaId ?lemma ?wordformId ?wordform ?number ?gender concat('', ?subLemmata) AS ?subLemmata
-            FROM <http://rdf.ivdnt.org/lexica/celex>
+            FROM <http://rdf.ivdnt.org/lexica/celex/>
             WHERE  {
                 ?lemmaId ontolex:canonicalForm [ontolex:writtenRep ?lemma] .
                 """+subpart+"""
@@ -262,7 +397,13 @@ def lexicon_query(word, pos, lexicon, sparql_limit=None, sparql_offset=None):
                             UD:Com_Gender, 
                                 if(?g = UD:Masc_Gender,
                                     UD:Com_Gender,
-                                    UD:Neut_Gender
+                                    if(?g = UD:Com_Gender,
+                                        UD:Com_Gender,
+                                        if(?g = UD:Neut_Gender,
+                                            UD:Neut,
+                                            ?g
+                                        )
+                                    )
                                 )
                             )
                             AS ?gender
