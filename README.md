@@ -1,6 +1,12 @@
-# Chaining search
+# CLARIAH Chaining search
+*CLARIAH chaining search* is a Python library and Jupyter web interface to easily combine exploration of linguistic resources published in the CLARIN/CLARIAH infrastructure, such as corpora, lexica and treebanks. *CLARIAH chaining search* is developed by the [Dutch Language Institute (INT)](https://ivdnt.org).
 
-## installation
+## Run online on Azure
+
+The notebook can be run online on [Azure](https://notebooks.azure.com/peter-dekker/projects/chaining-search).
+Create an account, clone the notebook, and you can run it in the cloud
+
+## Installation on own computer
 
 ### Linux/Mac
  * Chaining search is a Jupyter notebook, which depends on Python 3, pip (PyPi) and venv. Please first install Python 3 and pip via your package management system. E.g. for Ubuntu:
