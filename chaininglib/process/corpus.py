@@ -14,6 +14,7 @@ def get_frequency_list(df_corpus, column_name="lemma"):
 
     Args:
         df_corpus: a Pandas DataFrame with corpus data (it must contain at least one 'lemma' column)
+        column_name: the column name (default 'lemma') containing the items of which we are computing frequencies
     
     Returns:
         a Pandas DataFrame with 'lemmata' as index, 'token count' a number of occurences per lemma, 
@@ -93,26 +94,39 @@ def extract_lexicon(dfs_corpus, lemmaColumnName='lemma', posColumnName='pos', wo
         # Exract the basic layers (lemma, pos, wordform) contained in df_corpus
         column_names = list(df_corpus.columns.values)
         
-        for n, val in enumerate(column_names):
-            # remove the numbers at the end of the layers names (lemma 1, lemma 2, ..., pos 1, pos 2, ...)
-            # so we end up with clean layers name only
-            column_names[n] = val.split(' ')[0] 
+        # for n, val in enumerate(column_names):
+        #     # remove the numbers at the end of the layers names (lemma 1, lemma 2, ..., pos 1, pos 2, ...)
+        #     # so we end up with clean layers name only
+        #     column_names[n] = val.split(' ')[0] 
+        
+        # print("Column names after number removal: " + str(column_names))
+        
+        lemma_columns = list(filter(lambda name: name.startswith(lemmaColumnName+' '), column_names))
+        pos_columns = list(filter(lambda name: name.startswith(posColumnName+' '), column_names))
+        wordform_columns = list(filter(lambda name: name.startswith(wordformColumnName+' '), column_names))
+
+        if not (
+            len(lemma_columns)> 0 and
+            len(lemma_columns)==len(pos_columns)==len(wordform_columns)
+        ):
+            print("Skipping corpus. extract_lexicon() expects the Pandas DataFrame input to contain at least these columns: "+lemmaColumnName+", "+posColumnName+" and "+wordformColumnName)
+            continue
 
 
         # To be able to extract a lexicon, we need at least: lemma, pos, wordform
         # (only lemma and wordform is dangerous, since there can be homonyms with different grammatical categories,
         #  so when grouping them, we would end up with mixed up paradigms)
-        if (lemmaColumnName not in set(column_names) or posColumnName not in set(column_names) or wordformColumnName not in set(column_names)):
-            print("Skipping corpus. extract_lexicon() expects the Pandas DataFrame input to contain at least these columns: "+lemmaColumnName+", "+posColumnName+" and "+wordformColumnName)
-            continue
+        # if (lemmaColumnName not in set(column_names) or posColumnName not in set(column_names) or wordformColumnName not in set(column_names)):
+        #     print("Skipping corpus. extract_lexicon() expects the Pandas DataFrame input to contain at least these columns: "+lemmaColumnName+", "+posColumnName+" and "+wordformColumnName)
+        #     continue
 
 
         # loop through the layers, extract those as temporary DataFrame, 
         # and concat each temporary DataFrame with the main DataFrame to get a full list
-        for i in range(0, len(set(column_names)), 1):
-            current_lemma = lemmaColumnName+' '+str(i)
-            current_pos = posColumnName+' '+str(i)
-            current_wordform = wordformColumnName+' '+str(i)
+        for i in range(0, len(lemma_columns)):
+            current_lemma = lemma_columns[i]
+            current_pos = pos_columns[i]
+            current_wordform = wordform_columns[i]
             sub_df_corpus = df_corpus.loc[ : , [current_lemma, current_pos, current_wordform] ]
             sub_df_corpus.columns = [lemmaColumnName, posColumnName, wordformColumnName]
 

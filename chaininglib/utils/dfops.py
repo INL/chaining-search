@@ -165,22 +165,24 @@ def column_difference(df_column1, df_column2):
    
 
     
-def get_rank_diff(df1, df2, index=None):    
+def get_rank_diff(df1, df2, index=None, label1='rank_1', label2='rank_2'):    
     '''
     This function compares the rankings of words common to two dataframes, and compute a rank_diff, in such
     a way that one can see which words are very frequent in one set and rare in the other.
     
     Args:
-        df1: a Pandas DataFrame provided with rankings stored in a column "rank"
-        df2: a Pandas DataFrame provided with rankings stored in a column "rank"
+        df1: a Pandas DataFrame provided with rankings stored in a column "rank" (see example)
+        df2: a Pandas DataFrame provided with rankings stored in a column "rank" (see example)
         index (Optional): name of the column to be used as index (usually: the lemmata column)
+        label1 (Optional): column name for the ranks of the items of df1
+        label2 (Optional): column name for the ranks of the items of df2
         
     Returns:
         a Pandas DataFrame with lemmata (index), ranks of both input dataframes ('rank_1' and 'rank_2' columns) 
         and the rank_diff ('rank_diff' column).
         
-    >>> df_frequency_list1 = get_frequency_list(base_lexicon, "NOUN", corpus_to_search1)
-    >>> df_frequency_list2 = get_frequency_list(base_lexicon, "NOUN", corpus_to_search2)
+    >>> df_frequency_list1 = get_frequency_list(corpus_to_search1)
+    >>> df_frequency_list2 = get_frequency_list(corpus_to_search2)
     >>> df_rankdiffs = get_rank_diff(df_frequency_list1, df_frequency_list2)
     '''
     
@@ -189,15 +191,14 @@ def get_rank_diff(df1, df2, index=None):
     
     if index is not None:
         # https://stackoverflow.com/questions/42196337/dataframe-set-index-not-setting
-        df1.set_index(index, inplace=True, drop=True)
-        df2.set_index(index, inplace=True, drop=True)
+        df1 = df1.set_index(index, drop=True)
+        df2 = df2.set_index(index, drop=True)
         
     # Find lemmata shared by both dataframes: computing ranks diffs is only possible
     # when dealing with lemmata which are in both frames
     lemmata_list1 = set(df1.index.tolist())
     lemmata_list2 = set(df2.index.tolist())
     common_lemmata_list = list( lemmata_list1.intersection(lemmata_list2) )
-    
     
     # Build dataframes limited to the common lemmata
     limited_df1 = df1.loc[ common_lemmata_list , : ]
@@ -211,11 +212,11 @@ def get_rank_diff(df1, df2, index=None):
     limited_df2['rank'] = limited_df2['token count'].rank(ascending = False).astype(int)
     
     # Instantiate a dataframe for storing lemmata and rank diffs
-    df_rankdiffs = pd.DataFrame(index=common_lemmata_list, columns=['rank_1', 'rank_2', 'rank_diff'])
+    df_rankdiffs = pd.DataFrame(index=common_lemmata_list, columns=[label1, label2, 'rank_diff'])
     df_rankdiffs.index.name = 'lemmata'
     
-    df_rankdiffs['rank_1'] = limited_df1['rank']
-    df_rankdiffs['rank_2'] = limited_df2['rank']
-    df_rankdiffs['rank_diff'] = pd.DataFrame.abs( df_rankdiffs['rank_1'] - df_rankdiffs['rank_2'] )
+    df_rankdiffs[label1] = limited_df1['rank']
+    df_rankdiffs[label2] = limited_df2['rank']
+    df_rankdiffs['rank_diff'] = pd.DataFrame.abs( df_rankdiffs[label1] - df_rankdiffs[label2] )
     
     return df_rankdiffs
