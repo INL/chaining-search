@@ -174,7 +174,7 @@ def display_df(dfs, labels=None, mode='table', index=None):
         _display_single_df(dfs, labels, mode, index)
 
 
-def _display_single_df(df_column, label, mode, index):
+def _display_single_df(df_column, label, mode, index=None):
     
     # chart mode
     if mode == 'chart':

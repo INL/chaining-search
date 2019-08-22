@@ -95,7 +95,6 @@ class TreebankQuery(GeneralQuery):
                 url = endpoint+"/configured_treebanks"
                 components_response = requests.get(url)
                 response_json = json.loads(components_response.text)
-                
                 components_data = response_json[self._resource]["components"]
                 
                 # gather components names which are NOT disabled
@@ -114,12 +113,13 @@ class TreebankQuery(GeneralQuery):
             try:
                 url = endpoint+"/results"
                 data_arr ={"already": None,
-                           "components":components_names, 
+
+                           "remainingComponents":components_names, 
+                           "remainingDatabases":None, 
                            "corpus":self._resource, 
                            "isAnalysis":False,
                            "iteration":0, 
                            "needRegularGrinded":False, 
-                           "remainingDatabases":None, 
                            "retrieveContext":False, 
                            "searchLimit":None,
                            "variables":[],

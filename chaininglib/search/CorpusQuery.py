@@ -241,6 +241,11 @@ class CorpusQuery(GeneralQuery):
             
             # Append new entries (df) to existing dataframe (self._df_kwic): this is relevant if calling this function for multiple search queries
             df = df.fillna("")
+            # Convert column dtypes
+            if "witnessYear_from" in df:
+                df= df.astype({"witnessYear_from":"int32"})
+            if "witnessYear_to" in df:
+                df= df.astype({"witnessYear_to":"int32"})
             #df = self._df_kwic.append(df, ignore_index=True)
             
             self._search_performed = True

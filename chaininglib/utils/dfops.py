@@ -174,11 +174,11 @@ def get_rank_diff(df1, df2, index=None, label1='rank_1', label2='rank_2'):
         df1: a Pandas DataFrame provided with rankings stored in a column "rank" (see example)
         df2: a Pandas DataFrame provided with rankings stored in a column "rank" (see example)
         index (Optional): name of the column to be used as index (usually: the lemmata column)
-        label1 (Optional): column name for the ranks of the items of df1
-        label2 (Optional): column name for the ranks of the items of df2
+        label1 (Optional): output column name for the ranks of the items of df1
+        label2 (Optional): output column name for the ranks of the items of df2
         
     Returns:
-        a Pandas DataFrame with lemmata (index), ranks of both input dataframes ('rank_1' and 'rank_2' columns) 
+        a Pandas DataFrame with lemmata (index), ranks of both input dataframes (label1 and label2)
         and the rank_diff ('rank_diff' column).
         
     >>> df_frequency_list1 = get_frequency_list(corpus_to_search1)
@@ -220,3 +220,65 @@ def get_rank_diff(df1, df2, index=None, label1='rank_1', label2='rank_2'):
     df_rankdiffs['rank_diff'] = pd.DataFrame.abs( df_rankdiffs[label1] - df_rankdiffs[label2] )
     
     return df_rankdiffs
+
+def get_relfreq_diff(df1, df2, index=None, label1='relfreq_1', label2='relfreq_2', operation="division", N=1):    
+    '''
+    This function compares the rankings of words common to two dataframes, and compute a rank_diff, in such
+    a way that one can see which words are very frequent in one set and rare in the other.
+    
+    Args:
+        df1: a Pandas DataFrame provided with relative frequency stored in a column "perc" (see example)
+        df2: a Pandas DataFrame provided with relative frequency stored in a column "perc" (see example)
+        index (Optional): name of the column to be used as index (usually: the lemmata column)
+        label1 (Optional): output column name for the relative frequency of the items of df1
+        label2 (Optional): output column name for the relative frequency of the items of df2
+        operation (optional): 'division' for dividing relative frequencies by eachother, 'subtraction' for subtracting relative frequencies from eachother. Default 'division'
+        N (optional): smoothing parameter when operation is 'division'. Default 1.
+        
+    Returns:
+        a Pandas DataFrame with lemmata (index), ranks of both input dataframes ('rank_1' and 'rank_2' columns) 
+        and the rank_diff ('rank_diff' column).
+        
+    >>> df_frequency_list1 = get_frequency_list(corpus_to_search1)
+    >>> df_frequency_list2 = get_frequency_list(corpus_to_search2)
+    >>> df_rankdiffs = get_rank_diff(df_frequency_list1, df_frequency_list2)
+    '''
+    
+    check_valid_df("get_rank_diff", df1)
+    check_valid_df("get_rank_diff", df2)
+    
+    if index is not None:
+        # https://stackoverflow.com/questions/42196337/dataframe-set-index-not-setting
+        df1 = df1.set_index(index, drop=True)
+        df2 = df2.set_index(index, drop=True)
+        
+    # Find lemmata shared by both dataframes: computing diffs is only possible
+    # when dealing with lemmata which are in both frames
+    lemmata_list1 = set(df1.index.tolist())
+    lemmata_list2 = set(df2.index.tolist())
+    common_lemmata_list = list( lemmata_list1.union(lemmata_list2) )
+    difference_list = list( lemmata_list1.symmetric_difference(lemmata_list2) )
+    # Build dataframes limited to the common lemmata
+    limited_df1 = df1.reindex(common_lemmata_list)
+    limited_df2 = df2.reindex(common_lemmata_list)
+    
+    # Recompute ranks in both dataframes, because in each frame the original ranks were
+    # computed with a lemmata list which might be larger than the lemmata list common
+    # to both dataframes
+    
+    #limited_df1['rank'] = limited_df1['token count'].rank(ascending = False).astype(int)
+    #limited_df2['rank'] = limited_df2['token count'].rank(ascending = False).astype(int)
+    
+    # Instantiate a dataframe for storing lemmata and rank diffs
+    df_relfreq_diffs = pd.DataFrame(index=common_lemmata_list, columns=[label1, label2, 'relfreq_diff'])
+    df_relfreq_diffs.index.name = 'lemmata'
+    
+    df_relfreq_diffs[label1] = limited_df1['perc']
+    df_relfreq_diffs[label2] = limited_df2['perc']
+    df_relfreq_diffs = df_relfreq_diffs.fillna(0)
+    if operation == "division":
+        df_relfreq_diffs['relfreq_diff'] = (df_relfreq_diffs[label1] + N) / (df_relfreq_diffs[label2] +N)
+    elif operation=="subtraction":
+        df_relfreq_diffs['relfreq_diff'] = df_relfreq_diffs[label1] - df_relfreq_diffs[label2]
+    
+    return df_relfreq_diffs
