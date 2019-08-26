@@ -256,11 +256,11 @@ def get_relfreq_diff(df1, df2, index=None, label1='relfreq_1', label2='relfreq_2
     # when dealing with lemmata which are in both frames
     lemmata_list1 = set(df1.index.tolist())
     lemmata_list2 = set(df2.index.tolist())
-    common_lemmata_list = list( lemmata_list1.union(lemmata_list2) )
+    union_lemmata_list = list( lemmata_list1.union(lemmata_list2) )
     difference_list = list( lemmata_list1.symmetric_difference(lemmata_list2) )
     # Build dataframes limited to the common lemmata
-    limited_df1 = df1.reindex(common_lemmata_list)
-    limited_df2 = df2.reindex(common_lemmata_list)
+    limited_df1 = df1.reindex(union_lemmata_list)
+    limited_df2 = df2.reindex(union_lemmata_list)
     
     # Recompute ranks in both dataframes, because in each frame the original ranks were
     # computed with a lemmata list which might be larger than the lemmata list common
@@ -270,7 +270,7 @@ def get_relfreq_diff(df1, df2, index=None, label1='relfreq_1', label2='relfreq_2
     #limited_df2['rank'] = limited_df2['token count'].rank(ascending = False).astype(int)
     
     # Instantiate a dataframe for storing lemmata and rank diffs
-    df_relfreq_diffs = pd.DataFrame(index=common_lemmata_list, columns=[label1, label2, 'relfreq_diff'])
+    df_relfreq_diffs = pd.DataFrame(index=union_lemmata_list, columns=[label1, label2, 'relfreq_diff'])
     df_relfreq_diffs.index.name = 'lemmata'
     
     df_relfreq_diffs[label1] = limited_df1['perc']

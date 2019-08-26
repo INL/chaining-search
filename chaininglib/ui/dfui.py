@@ -7,6 +7,7 @@ import re
 import chaininglib.utils.dfops as dfops
 #from ipyupload import FileUpload
 import json
+import pandas as pd
 
 
 def create_save_dataframe_ui(df, filename=None):    
@@ -39,36 +40,49 @@ def create_save_dataframe_ui(df, filename=None):
     # when the user types a new filename, it will be passed to the button tooltip property straight away
     fileNameLink = widgets.jslink((fileNameField, 'value'), (savebutton, 'tooltip'))
     # click event with callback
-    savebutton.on_click( _save_dataframe )    
+    savebutton.on_click( _button_save_dataframe )    
     saveResultsBox = widgets.HBox([saveResultsCaption, fileNameField, savebutton])
     display(saveResultsBox)
     
     
-def _save_dataframe(button):
+def _button_save_dataframe(button):
     fileName = button.tooltip
     # The result files can be saved locally or on the server:
     # If result files are to be offered as downloads, set to True; otherwise set to False    
-    fileDownloadable = False
+    #fileDownloadable = False
     # specify paths here, if needed:
     filePath_onServer = ''  # could be /path/to
     filePath_default = ''
     # compute full path given chosen mode
-    fullFileName = (filePath_onServer if fileDownloadable else filePath_default ) + fileName
+    #fullFileName = (filePath_onServer if fileDownloadable else filePath_default ) + fileName
+    fullFileName = filePath_default + fileName
         
     try:
-        button.df.to_csv( fullFileName, index=False)
-        # confirm it all went well
-        print(fileName + " saved")    
+        save_dataframe(button.df, fullFileName)    
         button.button_style = 'success'
         button.icon = 'check'
         # trick: https://stackoverflow.com/questions/31893930/download-csv-from-an-ipython-notebook
-        if (fileDownloadable):
-            downloadableFiles = FileLinks(filePath_onServer)
-            display(downloadableFiles)
+        # if (fileDownloadable):
+        #     downloadableFiles = FileLinks(filePath_onServer)
+        #     display(downloadableFiles)
     except Exception as e:
         button.button_style = 'danger'
         raise ValueError("An error occured when saving " + fileName + ": "+ str(e))    
 
+def save_dataframe(df, fileName):
+    '''
+    This functions saves a Pandas DataFrame to a csv file on the server,
+    containing the index of the DataFrame as column in the file.
+    
+    Args:
+        df: a Pandas DataFrame
+        filepath: output path to the Pandas DataFrame (.csv)
+    
+    >>> df_corpus = load_dataframe(df, '/path/to/mijn_resultaten.csv')
+    '''
+    df.to_csv( fileName, index=True)
+    # confirm it all went well
+    print(fileName + " saved")
     
     
 def load_dataframe(filepath):
