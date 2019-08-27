@@ -129,9 +129,9 @@ def join_df(df_arr, join_type=None):
     # ref: https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
     
     if join_type is None:
-        concat_df = pd.concat( df_arr, axis=1 )
+        concat_df = pd.concat( df_arr, axis=1, sort=False )
     else:
-        concat_df = pd.concat( df_arr, axis=1, join=join_type )
+        concat_df = pd.concat( df_arr, axis=1, join=join_type, sort=False )
     
     return concat_df
 
