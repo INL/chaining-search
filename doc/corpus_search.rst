@@ -1,3 +1,5 @@
+:orphan:
+
 .. _corpus_search:
 
 Corpus search

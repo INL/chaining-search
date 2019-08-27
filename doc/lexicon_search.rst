@@ -1,3 +1,5 @@
+:orphan:
+
 .. _lexicon_search:
 
 Lexicon search

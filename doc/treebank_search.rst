@@ -1,3 +1,5 @@
+:orphan:
+
 .. _treebank_search:
 
 Treebank search
