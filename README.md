@@ -67,7 +67,7 @@ Every time you would like to run chaining search, invoke our run script:
 ## Using Chaining Search
 * `Examples.ipynb` gives a number of case studies of accessing and chaining together lexica, corpora and treebanks. Use `Sandbox.ipynb` to start chaining yourself. The `contrib` folder contains a number of more specific case studies.
  * For a tutorial, refer to our [Quickstart](Quickstart.pdf).
- * Reference of our library *chaininglib*, described in the documentation ([online](https://chaining-search.readthedocs.io/en/latest/) or [local (not for Azure cloud instance](doc/_build/html/index.html)).
+ * Reference of our library *chaininglib*, described in the documentation ([online](https://chaining-search.readthedocs.io/en/latest/) or [local (not for Azure cloud instance)](doc/_build/html/index.html)).
 
 ## Trouble?
 If you encounter any bugs or errors, please let us know via our [GitHub issue tracker](https://github.com/INL/chaining-search/issues) or send an e-mail to servicedesk@ivdnt.org.
