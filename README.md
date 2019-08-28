@@ -4,7 +4,7 @@
 ## Run online on Azure
 
 The notebook can be run online on [Azure](https://notebooks.azure.com/ivdnt/projects/chaining-search).
-Create an account, clone the notebook, and you can run it in the cloud
+Create an account, clone the notebook, and you can run it in the cloud!
 
 ## Installation on own computer
 
@@ -27,7 +27,7 @@ Create an account, clone the notebook, and you can run it in the cloud
    ```
    ./run.sh
    ```
-   A browser window will open. Now, click `Sandbox.ipynb`. The first time you use it, pick the kernel `env` from menu `Kernel > Change kernel > env`.
+   A browser window will open. Now, click `Sandbox.ipynb` or `Examples.ipynb`. The first time you use it, pick the kernel `env` from menu `Kernel > Change kernel > env`.
 
 
 ### Windows
@@ -62,12 +62,12 @@ Every time you would like to run chaining search, invoke our run script:
  ```
  run.bat
  ```
- * A browser window will open. Now, click `Sandbox.ipynb`. The first time you use it, pick the kernel `env` from menu `Kernel > Change kernel > env`.
+ * A browser window will open. Now, click `Sandbox.ipynb` or `Examples.ipynb`. The first time you use it, pick the kernel `env` from menu `Kernel > Change kernel > env`.
 
 ## Using Chaining Search
-* `Examples.ipynb` gives a number of case studies of accessing and chaining together lexica, corpora and treebanks. Use `Sandbox.ipynb` to start chaining yourself. 
+* `Examples.ipynb` gives a number of case studies of accessing and chaining together lexica, corpora and treebanks. Use `Sandbox.ipynb` to start chaining yourself. The `contrib` folder contains a number of more specific case studies.
  * For a tutorial, refer to our [Quickstart](Quickstart.pdf).
- * Reference of our library *chaininglib*, described in the documentation ([local](doc/_build/html/index.html) or [online](https://chaining-search.readthedocs.io/en/latest/)).
+ * Reference of our library *chaininglib*, described in the documentation ([online](https://chaining-search.readthedocs.io/en/latest/) or [local (not for Azure cloud instance](doc/_build/html/index.html)).
 
 ## Trouble?
 If you encounter any bugs or errors, please let us know via our [GitHub issue tracker](https://github.com/INL/chaining-search/issues) or send an e-mail to servicedesk@ivdnt.org.
