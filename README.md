@@ -3,7 +3,7 @@
 
 ## Run online on Azure
 
-The notebook can be run online on [Azure](https://notebooks.azure.com/peter-dekker/projects/chaining-search).
+The notebook can be run online on [Azure](https://notebooks.azure.com/ivdnt/projects/chaining-search).
 Create an account, clone the notebook, and you can run it in the cloud
 
 ## Installation on own computer
