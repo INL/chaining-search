@@ -9,6 +9,7 @@ python3 -m venv env
 # Activate virtual environment
 source env/bin/activate
 # All required packages are instlled via pip in the virtual environment
+pip3 install wheel
 pip3 install -r requirements.txt
 # Re-install old tornado version, to fix bug
 pip3 uninstall -y tornado
