@@ -1,6 +1,12 @@
 # CLARIAH Chaining search
 *CLARIAH chaining search* is a Python library and Jupyter web interface to easily combine exploration of linguistic resources published in the CLARIN/CLARIAH infrastructure, such as corpora, lexica and treebanks. *CLARIAH chaining search* is developed by the [Dutch Language Institute (INT)](https://ivdnt.org).
 
+## Background
+Linguistic resources, such as lexica and corpora, are usually published as web applications, where users issue a search term, and a number of results are shown in the browser. However, connecting multiple web applications in a single process for research and analysis, is a difficult task.
+
+As a solution, *CLARIAH chaining search* supplies a platform in which search and analysis operations can be freely combined in a single interface. One can build customizable workflows with any number of steps, in which heterogeneous resources (specifically from the CLARIN ecosystem) can be sequentially searched and quantitatively analysed. Any step in such a workflow is to be built programmatically, by means of the Python programming language. Working examples of both simple and complex workflows are provided as a reference for the user.
+
+
 ## Run online on Azure
 
 The notebook can be run online on [Azure](https://notebooks.azure.com/ivdnt/projects/chaining-search).
