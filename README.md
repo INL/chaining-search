@@ -78,5 +78,5 @@ Every time you would like to run chaining search, invoke our run script:
  * A browser window will open. Now, click `Sandbox.ipynb` or `Examples.ipynb`. The first time you use it, pick the kernel `env` from menu `Kernel > Change kernel > env`.
 
 
-### Trouble?
+## Trouble?
 If you encounter any bugs or errors, please let us know via our [GitHub issue tracker](https://github.com/INL/chaining-search/issues) or send an e-mail to servicedesk@ivdnt.org.
