@@ -69,7 +69,7 @@ def _button_save_dataframe(button):
         button.button_style = 'danger'
         raise ValueError("An error occured when saving " + fileName + ": "+ str(e))    
 
-def save_dataframe(df, fileName):
+def save_dataframe(df, fileName, as_latex=False):
     '''
     This functions saves a Pandas DataFrame to a csv file on the server,
     containing the index of the DataFrame as column in the file.
@@ -80,7 +80,10 @@ def save_dataframe(df, fileName):
     
     >>> df_corpus = load_dataframe(df, '/path/to/mijn_resultaten.csv')
     '''
-    df.to_csv( fileName, index=True)
+    if as_latex:
+        df.to_csv( fileName, index=True, float_format='%.3f', line_terminator="\\\\\n", sep="&")
+    else:
+        df.to_csv( fileName, index=True)
     # confirm it all went well
     print(fileName + " saved")
     

@@ -8,7 +8,7 @@ python -m pip install -U pip /quiet
 
 echo Create the virtual environment
 
-pip install --user virtualenv
+pip install virtualenv
 
 virtualenv env
 
