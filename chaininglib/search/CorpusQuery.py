@@ -24,6 +24,7 @@ class CorpusQuery(GeneralQuery):
         self._maximum_result_number = self._start_position + self._max_results
         self._metadata_filter = metadata_filter
         self._response = []
+        self._grouping_criteria = []
         self._df_kwic = pd.DataFrame()
         self._search_performed = False
         
@@ -123,6 +124,20 @@ class CorpusQuery(GeneralQuery):
         '''
         return self._copyWith('_metadata_filter', metadata_filter)
     
+    def group_by(self, grouping_criteria):
+        '''
+        Set grouping criteria (blacklab only).  For Blacklab, grouped results will be requested from the server.
+        
+        Args:
+           grouping criteria: list of field names
+        
+        Returns:
+            CorpusQuery object
+        '''
+        #print("grouping criteria:" + str(grouping_criteria))
+        return self._copyWith('_grouping_criteria', grouping_criteria)
+
+
     def method(self, method):
         '''
         Set method to make request
@@ -199,11 +214,16 @@ class CorpusQuery(GeneralQuery):
                 # Blacklab can filter metadata on server
                 lucene_filter = corpusHelpers._create_lucene_metadata_filter(self._metadata_filter)
                 
+                # grouping be done server side in blacklab
+
+                grouping_part =  "&group=" +  urllib.parse.quote(",".join(self._grouping_criteria)) if self._grouping_criteria else ""
+
                 url = ( constants.AVAILABLE_CORPORA[self._resource]["blacklab_url"] + "/hits?"
                         "&number=" + str(amount_to_fetch) +
                         "&first=" + str(self._start_position) +
                         "&patt=" + urllib.parse.quote(self._pattern) +
-                        "&filter=" + urllib.parse.quote_plus(lucene_filter) )
+                        "&filter=" + urllib.parse.quote_plus(lucene_filter) +
+                        grouping_part )
             else:
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
                 
@@ -214,7 +234,8 @@ class CorpusQuery(GeneralQuery):
             if self._method=="fcs":
                 df, next_page = corpusHelpers._parse_xml_fcs(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
             elif self._method=="blacklab":
-                df, next_page = corpusHelpers._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
+                is_grouped = len(self._grouping_criteria) > 0
+                df, next_page = corpusHelpers._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token, True)
                 
             # If there are next pages, call search_corpus recursively (could result in )
             

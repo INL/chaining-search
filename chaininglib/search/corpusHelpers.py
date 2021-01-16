@@ -1,5 +1,3 @@
-
-
 import pandas as pd
 import requests
 from collections import defaultdict
@@ -78,7 +76,79 @@ def _create_pandas_metadata_filter(df, filter_dict):
     return total_condition
 
 
-def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):
+'''
+    <hitgroup>
+      <identity>str:Crime$CMDrama$CMMystery</identity>
+      <identityDisplay>Crime,Drama,Mystery</identityDisplay>
+      <size>119</size>
+      <numberOfDocs>43</numberOfDocs>
+      <subcorpusSize>
+        <documents>326</documents>
+        <tokens>1955933</tokens>
+      </subcorpusSize>
+    </hitgroup>
+
+'''
+def _parse_xml_blacklab_grouped(text):
+    '''
+    This function converts the Blacklab XML output of a grouped blacklab query into a Pandas DataFrame for further processing
+    
+    Args:
+        text: the XML response of a corpus search, as a string
+    
+    Returns:
+        df: a Pandas DataFrame representing the parse results
+        next_pos: the next result to be parsed (since the results might be spread among several XML response pages), 
+        or 0 if there is no page left to be parsed
+    '''
+
+    root = ET.fromstring(text)
+    records = []
+    records_len = []
+    n_tokens = 0
+    max_len = 0
+    cols= []
+
+    #print(text)
+    
+    groups = root.find("hitGroups").findall("hitgroup")
+    #print("groups:" + str(groups))
+    for group in groups:
+        identity = group.find("identity").text
+        identity_display=group.find("identityDisplay").text
+        size = int(group.find("size").text)
+        if size == 0:
+          continue
+
+        docs = int(group.find("numberOfDocs").text)
+        subcorpus = group.find("subcorpusSize")
+        subcorpus_docs = -1
+        subcorpus_tokens = -1
+        hits_per_million = -1
+        if not subcorpus is None:
+          subcorpus_docs =  int(subcorpus.find("documents").text)
+          subcorpus_tokens =  int(subcorpus.find("tokens").text)
+          if (subcorpus_tokens > 0):
+            hits_per_million = (size / (subcorpus_tokens)) * 1000000
+        records.append([identity, identity_display, size, docs, subcorpus_docs, subcorpus_tokens, hits_per_million])
+
+    cols = ["identity", "identityDisplay", "size", "docs", "subcorpus_docs", "subcorpus_tokens", "hits_per_million"]
+
+    next_pos = 0
+    summary = root.find("summary")
+    windowHasNext = summary.find("windowHasNext")
+    has_next = "false"
+    if windowHasNext is not None:
+         has_next = windowHasNext.text
+    # If there is a next page, compute new start position
+    if (has_next == "true"):
+        first = summary.find("windowFirstResult").text
+        number = summary.find("requestedWindowSize").text
+        next_pos = int(first) + int(number)
+    df = pd.DataFrame(records, columns = cols)
+    return df, next_pos
+
+def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[], is_grouped_response= False):
     '''
     This function converts the Blacklab XML output of a lexicon or corpus search into a Pandas DataFrame for further processing
     
@@ -98,6 +168,10 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
     
     '''
     # TODO: should we secure against untrusted XML?
+
+    if is_grouped_response: 
+      return _parse_xml_blacklab_grouped(text)
+
     root = ET.fromstring(text)
     records = []
     records_len = []
