@@ -5,7 +5,7 @@
 pip3 install --user virtualenv
 export PATH=$PATH:~/.local/bin
 # Create virtual environment
-python3 -m venv env
+#python3 -m venv env
 # Activate virtual environment
 source env/bin/activate
 # All required packages are instlled via pip in the virtual environment
