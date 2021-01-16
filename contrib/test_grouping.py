@@ -54,10 +54,9 @@ def obfuscate(query):
 
 # simulate grouping by separate querying for each value
 def silly_grouping(corpus_name, query, field, values):
-    result_frames = list(map(lambda value: search_and_group(corpus_name, obfuscate(query), field, filter={field: value}, validity_filter=None), values))
-    for r in result_frames:
-        display_df(r)
+    result_frames = list(map(lambda value: search_and_group(corpus_name, obfuscate(query), field, filter={field: value}, validity_filter="^[0-9]{4}$"), values))
     concatenation =  pd.concat(result_frames)
+    display_df(concatenation)
     plot_df(concatenation, 'identityDisplay', 'hits_per_million')
 
 def flatten(l):
@@ -91,5 +90,5 @@ def search_and_group_multiple(corpus_name, queries, grouping_field, filter=None,
 def plot_df(df,x_column, y_columns):
     #df_values = df[y_column].apply(lambda x: int(x))
     dfsorted = df.sort_values(by=[x_column])
-    dfsorted.plot.line(x_column, y_columns, figsize=[16,8])
+    dfsorted.plot.line(x_column, y_columns, figsize=[30,15])
   
