@@ -8,6 +8,15 @@ import chaininglib.search.corpusQueries as corpusQueries
 import pandas as pd
 import sys
 
+# http://corpusgysseling.ivdnt.org/blacklab-server/Gysseling/docs/?outputformat=json&filter=genre%3A%28%22prose%22%29&first=0&number=0&includetokencount=true&waitfortotal=true
+'''
+    <stillCounting>false</stillCounting>
+    <numberOfDocs>2210</numberOfDocs>
+    <numberOfDocsRetrieved>2210</numberOfDocsRetrieved>
+    <tokensInMatchingDocuments>1079324</tokensInMatchingDocuments>
+'''
+
+
 from chaininglib.search.GeneralQuery import GeneralQuery
 
 class CorpusQuery(GeneralQuery):
@@ -27,6 +36,7 @@ class CorpusQuery(GeneralQuery):
         self._grouping_criteria = []
         self._df_kwic = pd.DataFrame()
         self._search_performed = False
+        self._summary = {}
         
         if self._resource not in constants.AVAILABLE_CORPORA:
             raise ValueError("Unknown corpus: " + self._resource)
@@ -179,7 +189,9 @@ class CorpusQuery(GeneralQuery):
                 self._pattern = corpusQueries.corpus_query(self._lemma, self._word, self._pos)
             else:
                 # If nothing is given: complain
-                raise ValueError('A pattern OR a lemma/word/pos is required')
+                # or just return corpus info for blacklab?
+                if (self._method != 'blacklab'):
+                   raise ValueError('A pattern OR a lemma/word/pos is required')
 
         
         
@@ -195,6 +207,7 @@ class CorpusQuery(GeneralQuery):
         
         amount_to_fetch = min(constants.RECORDS_PER_PAGE, max(0,self._maximum_result_number - self._start_position))
         
+        summary = {}
 
         try:
             if self._method=="fcs":
@@ -217,11 +230,12 @@ class CorpusQuery(GeneralQuery):
                 # grouping be done server side in blacklab
 
                 grouping_part =  "&group=" +  urllib.parse.quote(",".join(self._grouping_criteria)) if self._grouping_criteria else ""
-
-                url = ( constants.AVAILABLE_CORPORA[self._resource]["blacklab_url"] + "/hits?"
-                        "&number=" + str(amount_to_fetch) +
+                pattern_part = "&patt=" +   urllib.parse.quote(self._pattern) if self._pattern else ""
+                action = "/hits?" if self._pattern else "/docs?"
+                url = ( constants.AVAILABLE_CORPORA[self._resource]["blacklab_url"] + action +
+                        "&number=" + str(amount_to_fetch) + 
                         "&first=" + str(self._start_position) +
-                        "&patt=" + urllib.parse.quote(self._pattern) +
+                        pattern_part +
                         "&filter=" + urllib.parse.quote_plus(lucene_filter) +
                         grouping_part )
             else:
@@ -235,8 +249,11 @@ class CorpusQuery(GeneralQuery):
                 df, next_page = corpusHelpers._parse_xml_fcs(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
             elif self._method=="blacklab":
                 is_grouped = len(self._grouping_criteria) > 0
-                df, next_page = corpusHelpers._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token, True)
-                
+                if self._pattern:
+                    df, next_page, summary = corpusHelpers._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token, is_grouped)
+                else:
+                    df, next_page, summary = corpusHelpers._parse_xml_blacklab_docs(response_text, is_grouped)
+                self._summary = summary
             # If there are next pages, call search_corpus recursively (could result in )
             
             retrieved_so_far = self._start_position + len(df.index)
@@ -309,7 +326,16 @@ class CorpusQuery(GeneralQuery):
         self.check_search_performed()
         return self._df_kwic
 
-
+    def summary(self):
+        '''
+        Get the Pandas DataFrame with one keyword in context (KWIC) per row
+        
+        Returns:
+            Pandas DataFrame
+        '''
+        self.check_search_performed()
+        return self._summary
+        
 
 def create_corpus(name):
     '''

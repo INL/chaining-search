@@ -147,6 +147,174 @@ def _parse_xml_blacklab_grouped(text):
         next_pos = int(first) + int(number)
     df = pd.DataFrame(records, columns = cols)
     return df, next_pos
+'''
+<blacklabResponse>
+<summary>
+<searchParam>
+<first>0</first>
+<group>field:region:i</group>
+<indexname>Gysseling</indexname>
+<number>20</number>
+<patt>[word="de"]</patt>
+</searchParam>
+<searchTime>100</searchTime>
+<numberOfGroups>20</numberOfGroups>
+<largestGroupSize>571</largestGroupSize>
+<windowFirstResult>0</windowFirstResult>
+<requestedWindowSize>20</requestedWindowSize>
+<actualWindowSize>20</actualWindowSize>
+<windowHasPrevious>false</windowHasPrevious>
+<windowHasNext>false</windowHasNext>
+<stillCounting>false</stillCounting>
+<numberOfHits>11662</numberOfHits>
+<numberOfHitsRetrieved>11662</numberOfHitsRetrieved>
+<stoppedCountingHits>false</stoppedCountingHits>
+<stoppedRetrievingHits>false</stoppedRetrievingHits>
+<numberOfDocs>1183</numberOfDocs>
+<numberOfDocsRetrieved>1183</numberOfDocsRetrieved>
+<subcorpusSize>
+<documents>2231</documents>
+<tokens>1547893</tokens>
+</subcorpusSize>
+</summary>
+<docGroups>
+<docgroup>
+	<identity>str:West-Vlaanderen</identity>
+	<identityDisplay>West-Vlaanderen</identityDisplay>
+	<size>571</size>
+	<numberOfTokens>527264</numberOfTokens>
+		<subcorpusSize>
+		<documents>1226</documents>
+		<tokens>747696</tokens>
+	</subcorpusSize>
+</docgroup>
+'''
+def _parse_xml_blacklab_docs_grouped(text):
+    '''
+    This function converts the Blacklab XML output of a grouped blacklab query into a Pandas DataFrame for further processing
+    
+    Args:
+        text: the XML response of a corpus search, as a string
+    
+    Returns:
+        df: a Pandas DataFrame representing the parse results
+        next_pos: the next result to be parsed (since the results might be spread among several XML response pages), 
+        or 0 if there is no page left to be parsed
+    '''
+
+    root = ET.fromstring(text)
+    records = []
+    records_len = []
+    n_tokens = 0
+    max_len = 0
+    cols= []
+
+    #print(text)
+    
+    groups = root.find("docGroups").findall("docgroup")
+    #print("groups:" + str(groups))
+    for group in groups:
+        identity = group.find("identity").text
+        identity_display=group.find("identityDisplay").text
+        size = int(group.find("size").text)
+        if size == 0:
+          continue
+
+        #docs = int(group.find("numberOfDocs").text)
+        subcorpus = group.find("subcorpusSize")
+        subcorpus_docs = -1
+        subcorpus_tokens = -1
+        relative_docs = -1
+        if not subcorpus is None:
+          subcorpus_docs =  int(subcorpus.find("documents").text)
+          subcorpus_tokens =  int(subcorpus.find("tokens").text)
+          if (subcorpus_docs > 0):
+            relative_docs = (size / (subcorpus_docs)) * 100
+        records.append([identity, identity_display, size, subcorpus_docs, subcorpus_tokens, relative_docs])
+
+    cols = ["identity", "identityDisplay", "size",  "subcorpus_docs", "subcorpus_tokens", "docs_relative"]
+
+    next_pos = 0
+    summary = root.find("summary")
+    windowHasNext = summary.find("windowHasNext")
+    has_next = "false"
+    if windowHasNext is not None:
+         has_next = windowHasNext.text
+    # If there is a next page, compute new start position
+    if (has_next == "true"):
+        first = summary.find("windowFirstResult").text
+        number = summary.find("requestedWindowSize").text
+        next_pos = int(first) + int(number)
+    df = pd.DataFrame(records, columns = cols)
+    return df, next_pos
+
+'''
+<searchTime>3</searchTime>
+<countTime>3</countTime>
+<windowFirstResult>0</windowFirstResult>
+<requestedWindowSize>0</requestedWindowSize>
+<actualWindowSize>0</actualWindowSize>
+<windowHasPrevious>false</windowHasPrevious>
+<windowHasNext>true</windowHasNext>
+<stillCounting>false</stillCounting>
+<numberOfHits>11662</numberOfHits>
+<numberOfHitsRetrieved>11662</numberOfHitsRetrieved>
+<stoppedCountingHits>false</stoppedCountingHits>
+<stoppedRetrievingHits>false</stoppedRetrievingHits>
+<numberOfDocs>1183</numberOfDocs>
+<numberOfDocsRetrieved>1183</numberOfDocsRetrieved>
+'''
+
+def _parse_xml_summary_blacklab(text):
+  root = ET.fromstring(text)
+  summary = root.find("summary")
+  result = {}
+  for tag in ['windowHasNext', 'numberOfHits', 'numberOfDocs', 'numberOfTokens']:
+     elem = summary.find(tag)
+     if not elem == None:
+       if ('number' in tag):
+         result[tag] = int(elem.text)
+       else:
+         result[tag] = elem.text
+     subcorpusSize = summary.find('subcorpusSize')
+     if not subcorpusSize == None:
+     	result['subcorpusDocs'] = int(subcorpusSize.find('documents').text)
+     	result['subcorpusTokens'] = int(subcorpusSize.find('tokens').text)
+  return result
+
+'''
+  <blacklabResponse> at result 0...e/chaining-search/LidWoord $ python testje.py 
+  <summary>                                                         
+    <searchParam>
+      <first>0</first>
+      <group>field:genre:i</group>
+      <indexname>JapansNederlands</indexname>
+      <number>0</number>
+    </searchParam>
+    <searchTime>103</searchTime>
+    <numberOfGroups>207</numberOfGroups>
+    <largestGroupSize>326</largestGroupSize>
+    <windowFirstResult>0</windowFirstResult>
+    <requestedWindowSize>0</requestedWindowSize>
+    <actualWindowSize>0</actualWindowSize>
+    <windowHasPrevious>false</windowHasPrevious>
+    <windowHasNext>true</windowHasNext>
+    <stillCounting>false</stillCounting>
+    <numberOfDocs>2439</numberOfDocs>
+    <numberOfDocsRetrieved>2439</numberOfDocsRetrieved>
+    <subcorpusSize>
+      <documents>2439</documents>
+      <tokens>14392455</tokens>
+    </subcorpusSize>
+  </summary>
+'''
+def _parse_xml_blacklab_docs(text, is_grouped_response):
+	summary = _parse_xml_summary_blacklab(text)
+	if is_grouped_response: 
+		result, next_pos = _parse_xml_blacklab_docs_grouped(text)
+		return result, next_pos, summary
+	frame = pd.DataFrame([[]], ['nope'])
+	return frame, 0, summary
 
 def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[], is_grouped_response= False):
     '''
@@ -168,9 +336,12 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
     
     '''
     # TODO: should we secure against untrusted XML?
+    #print(text)
+    summary = _parse_xml_summary_blacklab(text)
 
     if is_grouped_response: 
-      return _parse_xml_blacklab_grouped(text)
+      result, next_pos = _parse_xml_blacklab_grouped(text)
+      return result, next_pos, summary
 
     root = ET.fromstring(text)
     records = []
@@ -273,7 +444,7 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         if (records_len[i]<max_len):
             del records[i]
         
-    return pd.DataFrame(records, columns = cols), next_pos
+    return pd.DataFrame(records, columns = cols), next_pos, summary
 
 
 def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):
@@ -375,7 +546,7 @@ def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fiel
         if (records_len[i]<max_len):
             del records[i]
         
-    return pd.DataFrame(records, columns = cols), next_pos
+    return pd.DataFrame(records, columns = cols), next_pos, summary
 
 def _show_error_if_any(text):
     '''
