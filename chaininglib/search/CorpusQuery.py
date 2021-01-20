@@ -38,6 +38,7 @@ class CorpusQuery(GeneralQuery):
         self._search_performed = False
         self._summary = {}
         self._corpus_info = {}
+        self._show_status = False
         '''
         maxretrieve 	Maximum number of hits to retrieve. -1 means "no limit". Also affects documents-containing-pattern queries and grouped-hits queries. Default configurable in blacklab-server.yaml. Very large values (millions, or unlimited) may cause server problems.
         maxcount 	Maximum number of hits to count. -1 means "no limit". Default configurable in blacklab-server.yaml. Even when BlackLab stops retrieving hits, it still keeps counting. For large results sets this may take a long time.
@@ -209,9 +210,11 @@ class CorpusQuery(GeneralQuery):
             self._start_position = 1
 
         # show wait indicator
-        status.remove_wait_indicator()
-        
-        status.show_wait_indicator('Searching '+self._resource+ ' at result '+str(self._start_position))  
+
+
+        if self._show_status:
+            status.remove_wait_indicator()
+            status.show_wait_indicator('Searching '+self._resource+ ' at result '+str(self._start_position))
         
         amount_to_fetch = min(constants.RECORDS_PER_PAGE, max(0,self._maximum_result_number - self._start_position))
         
@@ -251,7 +254,8 @@ class CorpusQuery(GeneralQuery):
             else:
                 raise ValueError("Invalid request method: " +  self._method + ". Should be one of: 'fcs' or 'blacklab'.")
                 
-            
+            print("REQUEST URL:" + url)
+
             response = requests.get(url)
             response_text = response.text
 
@@ -364,6 +368,9 @@ class CorpusQuery(GeneralQuery):
             x,y,summary = corpusHelpers._parse_xml_blacklab_corpus_info(response_text)
             self._corpus_info = summary
         return self._corpus_info
+
+    def show_status(self, b):
+        return self._copyWith('_show_status', b)
 
 def create_corpus(name):
     '''
