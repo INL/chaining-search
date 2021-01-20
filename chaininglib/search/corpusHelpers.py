@@ -310,11 +310,24 @@ def _parse_xml_summary_blacklab(text):
 '''
 def _parse_xml_blacklab_docs(text, is_grouped_response):
 	summary = _parse_xml_summary_blacklab(text)
-	if is_grouped_response: 
+	if is_grouped_response:
 		result, next_pos = _parse_xml_blacklab_docs_grouped(text)
 		return result, next_pos, summary
 	frame = pd.DataFrame([[]], ['nope'])
 	return frame, 0, summary
+
+'''
+  <tokenCount>2071873</tokenCount>
+  <documentCount>12683</documentCount>
+'''
+
+def _parse_xml_blacklab_corpus_info(text):
+    root = ET.fromstring(text)
+    tokenCount = int(root.find('tokenCount').text)
+    documentCount = int(root.find('documentCount').text)
+    summary = {'tokenCount' : tokenCount, 'documentCount': documentCount}
+    frame = pd.DataFrame([[]], ['nope'])
+    return frame, 0, summary
 
 def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[], is_grouped_response= False):
     '''
@@ -337,11 +350,11 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
     '''
     # TODO: should we secure against untrusted XML?
     #print(text)
-    summary = _parse_xml_summary_blacklab(text)
+    parsed_summary = _parse_xml_summary_blacklab(text)
 
     if is_grouped_response: 
       result, next_pos = _parse_xml_blacklab_grouped(text)
-      return result, next_pos, summary
+      return result, next_pos, parsed_summary
 
     root = ET.fromstring(text)
     records = []
@@ -444,7 +457,7 @@ def _parse_xml_blacklab (text, detailed_context=False, extra_fields_doc=[], extr
         if (records_len[i]<max_len):
             del records[i]
         
-    return pd.DataFrame(records, columns = cols), next_pos, summary
+    return pd.DataFrame(records, columns = cols), next_pos, parsed_summary
 
 
 def _parse_xml_fcs(text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):

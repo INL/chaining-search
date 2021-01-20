@@ -51,3 +51,6 @@ ENABLE_WAIT_INDICATOR = True
 
 # Get rid of ellipsis in display (otherwise relevant data might not be shown)
 pd.set_option('display.max_colwidth',1000)
+
+def add_corpus(name, config):
+  AVAILABLE_CORPORA[name] = config

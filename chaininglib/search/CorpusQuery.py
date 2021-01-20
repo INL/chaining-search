@@ -37,7 +37,15 @@ class CorpusQuery(GeneralQuery):
         self._df_kwic = pd.DataFrame()
         self._search_performed = False
         self._summary = {}
-        
+        self._corpus_info = {}
+        '''
+        maxretrieve 	Maximum number of hits to retrieve. -1 means "no limit". Also affects documents-containing-pattern queries and grouped-hits queries. Default configurable in blacklab-server.yaml. Very large values (millions, or unlimited) may cause server problems.
+        maxcount 	Maximum number of hits to count. -1 means "no limit". Default configurable in blacklab-server.yaml. Even when BlackLab stops retrieving hits, it still keeps counting. For large results sets this may take a long time.
+        '''
+        self._max_count = -1
+        self._max_retrieve = -1
+        self._wait_for_total = 'yes'
+
         if self._resource not in constants.AVAILABLE_CORPORA:
             raise ValueError("Unknown corpus: " + self._resource)
 
@@ -218,7 +226,7 @@ class CorpusQuery(GeneralQuery):
                 url = ( constants.FCS_URL +
                         "&maximumRecords=" + str(amount_to_fetch) +
                         "&startRecord=" + str(self._start_position) +
-                        "&x-fcs-context=" + self._resource + 
+                        "&x-fcs-context=" + self._resource +
                         "&query=" + urllib.parse.quote_plus(self._pattern) )
             elif self._method=="blacklab":
                 if "blacklab_url" not in constants.AVAILABLE_CORPORA[self._resource]:
@@ -233,7 +241,9 @@ class CorpusQuery(GeneralQuery):
                 pattern_part = "&patt=" +   urllib.parse.quote(self._pattern) if self._pattern else ""
                 action = "/hits?" if self._pattern else "/docs?"
                 url = ( constants.AVAILABLE_CORPORA[self._resource]["blacklab_url"] + action +
-                        "&number=" + str(amount_to_fetch) + 
+                        "&number=" + str(amount_to_fetch) +
+                        "&maxcount=" + str(self._max_count) +
+                        "&waitfortotal=" + self._wait_for_total +
                         "&first=" + str(self._start_position) +
                         pattern_part +
                         "&filter=" + urllib.parse.quote_plus(lucene_filter) +
@@ -244,15 +254,22 @@ class CorpusQuery(GeneralQuery):
             
             response = requests.get(url)
             response_text = response.text
+
             self._response.append(response_text)
             if self._method=="fcs":
                 df, next_page = corpusHelpers._parse_xml_fcs(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token)
             elif self._method=="blacklab":
                 is_grouped = len(self._grouping_criteria) > 0
+                has_filter = self._metadata_filter
+
                 if self._pattern:
                     df, next_page, summary = corpusHelpers._parse_xml_blacklab(response_text, self._detailed_context, self._extra_fields_doc, self._extra_fields_token, is_grouped)
                 else:
-                    df, next_page, summary = corpusHelpers._parse_xml_blacklab_docs(response_text, is_grouped)
+                    if has_filter or is_grouped:
+                        df, next_page, summary = corpusHelpers._parse_xml_blacklab_docs(response_text, is_grouped)
+                    else:
+                        df, next_page, summary = corpusHelpers._parse_xml_blacklab_corpus_info(response_text) # dit is een slecht idee
+
                 self._summary = summary
             # If there are next pages, call search_corpus recursively (could result in )
             
@@ -335,7 +352,18 @@ class CorpusQuery(GeneralQuery):
         '''
         self.check_search_performed()
         return self._summary
-        
+
+    def corpus_info(self): # blacklab only: get some information about the corpus
+        if self._corpus_info:
+          pass
+        else:
+          if self._method == "blacklab":
+            url = constants.AVAILABLE_CORPORA[self._resource]["blacklab_url"]
+            response = requests.get(url)
+            response_text = response.text
+            x,y,summary = corpusHelpers._parse_xml_blacklab_corpus_info(response_text)
+            self._corpus_info = summary
+        return self._corpus_info
 
 def create_corpus(name):
     '''
