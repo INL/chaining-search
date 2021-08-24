@@ -1,0 +1,32 @@
+def _parse_xml_blacklab_grouped(text, detailed_context=False, extra_fields_doc=[], extra_fields_token=[]):
+    root = ET.fromstring(text)
+    records = []
+    records_len = []
+    n_tokens = 0
+    max_len = 0
+    cols= []
+
+    groups = root.findall("hitgroup")
+
+    for group in groups:
+        identity = group.get("identity")
+        identity_display=group.get("indentityDisplay")
+        size = group.get("size")
+        docs = group.get("numberOfDocs")
+        records.append([identity, identity_display, size, docs])
+
+    cols = ["identity", "identityDisplay", "size", "docs"]
+
+    next_pos = 0
+    summary = root.find("summary")
+    windowHasNext = summary.find("windowHasNext")
+    has_next = "false"
+    if windowHasNext is not None:
+         has_next = windowHasNext.text
+    # If there is a next page, compute new start position
+    if (has_next == "true"):
+        first = summary.find("windowFirstResult").text
+        number = summary.find("requestedWindowSize").text
+        next_pos = int(first) + int(number)
+
+    return pd.DataFrame(records, columns = cols), next_pos
