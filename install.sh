@@ -13,7 +13,7 @@ pip3 install wheel
 pip3 install -r requirements.txt
 # Re-install old tornado version, to fix bug
 pip3 uninstall -y tornado
-pip3 install tornado==5.1.1.
+pip3 install tornado #==5.1.1.
 # Jupyter Notebook extensions are set up
 jupyter contrib nbextension install --sys-prefix
 jupyter nbextensions_configurator enable --sys-prefix
